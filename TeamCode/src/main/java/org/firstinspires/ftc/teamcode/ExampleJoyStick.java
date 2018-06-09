@@ -39,7 +39,7 @@ import com.qualcomm.robotcore.util.Range;
 @TeleOp(name = "Example Joystick", group = "Example")
 @Disabled
 
-public class ExampleJoystick extends OpMode {
+public class ExampleJoyStick extends OpMode {
 
     double x, y, angle;
 
