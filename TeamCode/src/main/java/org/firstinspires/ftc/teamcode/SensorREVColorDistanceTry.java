@@ -101,6 +101,7 @@ public class SensorREVColorDistanceTry extends LinearOpMode {
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
 
         telemetry.addData("Initialized", "Robot is Ready!");
+        telemetry.update();
 
         // wait for the start button to be pressed.
         waitForStart();
