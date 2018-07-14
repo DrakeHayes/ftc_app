@@ -29,17 +29,17 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Driving;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-@TeleOp(name = "Example Drive Square", group = "Example")
+@TeleOp(name = "Example Drive Turn Angle", group = "DriveExample")
 @Disabled
 
-public class ExampleDriveSquare extends OpMode {
+public class ExampleDriveTurnAngle extends OpMode {
 
     DcMotor rightMotor;
     DcMotor leftMotor;
@@ -52,15 +52,6 @@ public class ExampleDriveSquare extends OpMode {
     static final double     countsPerTurnDegree     = 2 * Math.PI * robotWidthInches * countsPerInch / 360;
 
     int targetPosition = 0;
-    int count = 1;
-
-    State programState;
-
-    public enum State {
-        STRAIGHT,
-        TURN,
-        END
-    }
 
     @Override
     public void init() {
@@ -73,10 +64,9 @@ public class ExampleDriveSquare extends OpMode {
         rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        programState = State.STRAIGHT;
-
         telemetry.addData("Status:", "Robot is Initialized");
     }
+
 
     @Override
     public void init_loop() {
@@ -84,61 +74,26 @@ public class ExampleDriveSquare extends OpMode {
         telemetry.addData("2 Left Motor Pos", leftMotor.getCurrentPosition());
     }
 
+
     @Override
     public void start() {
         rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        targetPosition = (int) (24 * countsPerInch);
-        rightMotor.setTargetPosition(targetPosition + rightMotor.getCurrentPosition());
-        leftMotor.setTargetPosition(targetPosition + leftMotor.getCurrentPosition());
     }
 
 
     @Override
     public void loop() {
+        targetPosition = (int) (90 * countsPerTurnDegree);
+        rightMotor.setTargetPosition(targetPosition);
 
-        switch (programState) {
-            case STRAIGHT:
-                rightMotor.setPower(.8);
-                leftMotor.setPower(.8);
-
-                if (!rightMotor.isBusy() && !leftMotor.isBusy()) {
-                    programState = State.TURN;
-                    targetPosition = (int) (90 * countsPerTurnDegree);
-                    rightMotor.setTargetPosition(targetPosition + rightMotor.getCurrentPosition());
-                    leftMotor.setTargetPosition(leftMotor.getCurrentPosition());
-                }
-                break;
-
-            case TURN:
-                rightMotor.setPower(.8);
-                leftMotor.setPower(0);
-
-                if (!rightMotor.isBusy() && !leftMotor.isBusy() && count <= 4) {
-                    programState = State.STRAIGHT;
-                    targetPosition = (int) (24 * countsPerInch);
-                    rightMotor.setTargetPosition(targetPosition + rightMotor.getCurrentPosition());
-                    leftMotor.setTargetPosition(targetPosition + leftMotor.getCurrentPosition());
-                    count++;
-                }
-                else if (count > 4) {
-                    programState = State.END;
-                }
-                break;
-
-            case END:
-                rightMotor.setPower(0);
-                leftMotor.setPower(0);
-                break;
-        }
-
+        rightMotor.setPower(.8);
+        leftMotor.setPower(0);
 
         // send the info back to driver station using telemetry function.
         telemetry.addData("1 Right Motor Power", rightMotor.getCurrentPosition());
         telemetry.addData("2 Left Motor Power", leftMotor.getCurrentPosition());
         telemetry.addData("3 Target Position", targetPosition);
-        telemetry.addData("4 Square Side", count);
     }
 
 

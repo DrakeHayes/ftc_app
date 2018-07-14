@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.mentorcode.Archive;
 
 import android.graphics.Color;
 
@@ -37,27 +37,30 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.I2cAddr;
+import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
- * Demonstrates how to setup and use 2 MR color sensors
+ * Demonstrates how to read the FTC Velocity Vortex beacon color
  */
-@Autonomous(name = "Read 2 Color Sensors", group = "Example")
+@Autonomous(name = "Color Sensor for Beacon", group = "Archive")
 @Disabled
-public class Example2ColorSensors extends OpMode {
+public class ExampleColorSensorReadBeacon extends OpMode {
 
-    ColorSensor colorSensor1, colorSensor2;
+    ColorSensor colorSensor;
+    DeviceInterfaceModule CDI;
+
+    private ElapsedTime runtime = new ElapsedTime();
+
+    float hsvValues[] = {0,0,0};
 
     @Override
     public void init() {
-        colorSensor1 = hardwareMap.colorSensor.get("colorsensor1");
-        colorSensor2 = hardwareMap.colorSensor.get("colorsensor2");
+        colorSensor = hardwareMap.colorSensor.get("colorsensor");
+        CDI = hardwareMap.deviceInterfaceModule.get("Device Interface Module 1");
 
-        colorSensor1.setI2cAddress(I2cAddr.create8bit(0x3C));
-        colorSensor2.setI2cAddress(I2cAddr.create8bit(0x32));
-
-        colorSensor1.enableLed(false);
-        colorSensor2.enableLed(true);
+        colorSensor.enableLed(false);
 
         telemetry.addData("Status", "Initialized");
     }
@@ -68,18 +71,34 @@ public class Example2ColorSensors extends OpMode {
 
 
     @Override
-    public void start() { }
+    public void start() {
 
+        runtime.reset();
+    }
 
     @Override
     public void loop() {
-        telemetry.addData("Color1 Red", colorSensor1.red());
-        telemetry.addData("Color1 Green", colorSensor1.green());
-        telemetry.addData("Color1 Blue", colorSensor1.blue());
+        Color.RGBToHSV(colorSensor.red()*8, colorSensor.green()*8, colorSensor.blue()*8, hsvValues);
 
-        telemetry.addData("Color2 Red", colorSensor2.red());
-        telemetry.addData("Color2 Green", colorSensor2.green());
-        telemetry.addData("Color2 Blue", colorSensor2.blue());
+        if (colorSensor.red() > colorSensor.blue() && colorSensor.red() > colorSensor.green()){
+            CDI.setLED(0, false);
+            CDI.setLED(1, true);
+        }
+
+        else if (colorSensor.blue() > colorSensor.red() && colorSensor.blue() > colorSensor.green()) {
+            CDI.setLED(0, true);
+            CDI.setLED(1, false);
+        }
+        else {
+            CDI.setLED(0, false);
+            CDI.setLED(1, false);
+        }
+
+        telemetry.addData("2 Clear", colorSensor.alpha());
+        telemetry.addData("3 Red", colorSensor.red());
+        telemetry.addData("4 Green", colorSensor.green());
+        telemetry.addData("5 Blue", colorSensor.blue());
+        telemetry.addData("6 Hue", hsvValues[0]);
     }
 
     @Override

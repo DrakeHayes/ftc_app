@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.mentorcode.Archive;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -39,10 +39,10 @@ import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 
-@TeleOp(name = "Read MRgyro sensor", group = "Example")
+@TeleOp(name = "Read Window MRgyro sensor", group = "Archive")
 @Disabled
 
-public class ExampleI2cGyroSensorRead extends OpMode {
+public class ExampleI2cGyroSensorReadWindow extends OpMode {
     int heading = 0;        //Variable for Heading data
     int intZValue = 0;      //Variable for the integrated Z value
 
@@ -61,10 +61,11 @@ public class ExampleI2cGyroSensorRead extends OpMode {
 
     @Override
     public void init() {
-        gyro1 = hardwareMap.i2cDevice.get("Gyro");
+        gyro1 = hardwareMap.i2cDevice.get("gyro1MR");
         gyro1Addr = I2cAddr.create8bit(GYRO1ADDRESS);
         gyro1Synch = new I2cDeviceSynchImpl(gyro1, gyro1Addr, false);
         gyro1Synch.engage();
+        gyro1Synch.setReadWindow(new I2cDeviceSynch.ReadWindow(GYRO1_REG_START, GYRO1_READ_LENGTH, I2cDeviceSynch.ReadMode.REPEAT));
     }
 
     @Override

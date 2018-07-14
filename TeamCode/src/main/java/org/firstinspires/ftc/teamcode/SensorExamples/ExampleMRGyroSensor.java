@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.SensorExamples;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -40,7 +40,7 @@ import com.qualcomm.robotcore.hardware.I2cAddr;
 /**
  * Demonstrates how to setup and use 2 MR color sensors
  */
-@Autonomous(name = "Read MR Gyro Sensor", group = "Example")
+@Autonomous(name = "Read MR Gyro Sensor", group = "SensorExamples")
 @Disabled
 public class ExampleMRGyroSensor extends OpMode {
 

@@ -29,17 +29,18 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Driving;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Example Drive Turn Angle", group = "Example")
+@TeleOp(name = "Example Drive Forward and Back", group = "DriveExample")
 @Disabled
 
-public class ExampleDriveTurnAngle extends OpMode {
+public class ExampleDriveForwardAndBack extends OpMode {
 
     DcMotor rightMotor;
     DcMotor leftMotor;
@@ -48,8 +49,6 @@ public class ExampleDriveTurnAngle extends OpMode {
     static final double     wheelDiameterInches     = 4;
     static final double     driveGearReduction      = 1;
     static final double     countsPerInch           = countsPerMotorRev*driveGearReduction/(wheelDiameterInches*3.14);
-    static final double     robotWidthInches        = 12;
-    static final double     countsPerTurnDegree     = 2 * Math.PI * robotWidthInches * countsPerInch / 360;
 
     int targetPosition = 0;
 
@@ -67,7 +66,6 @@ public class ExampleDriveTurnAngle extends OpMode {
         telemetry.addData("Status:", "Robot is Initialized");
     }
 
-
     @Override
     public void init_loop() {
         telemetry.addData("1 Right Motor Pos", rightMotor.getCurrentPosition());
@@ -84,11 +82,23 @@ public class ExampleDriveTurnAngle extends OpMode {
 
     @Override
     public void loop() {
-        targetPosition = (int) (90 * countsPerTurnDegree);
-        rightMotor.setTargetPosition(targetPosition);
+        if (!rightMotor.isBusy() && !leftMotor.isBusy()) {
+            if (targetPosition == 0) {
+                targetPosition = (int) (24 * countsPerInch);
+                rightMotor.setTargetPosition(targetPosition);
+                leftMotor.setTargetPosition(targetPosition);
+
+            }
+            else {
+                targetPosition = 0;
+                rightMotor.setTargetPosition(targetPosition);
+                leftMotor.setTargetPosition(targetPosition);
+            }
+        }
+
 
         rightMotor.setPower(.8);
-        leftMotor.setPower(0);
+        leftMotor.setPower(.8);
 
         // send the info back to driver station using telemetry function.
         telemetry.addData("1 Right Motor Power", rightMotor.getCurrentPosition());

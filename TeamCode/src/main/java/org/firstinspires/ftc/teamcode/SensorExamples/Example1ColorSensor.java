@@ -29,37 +29,36 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.SensorExamples;
 
 import android.graphics.Color;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 
 /**
- * Demonstrates how to read the FTC Velocity Vortex beacon color
+ * Demonstrates how to setup and use 1 MR color sensor
  */
-@Autonomous(name = "Color Sensor for Beacon", group = "Example")
-@Disabled
-public class ExampleColorSensorReadBeacon extends OpMode {
+@Autonomous(name = "Read Color Sensor with HSV", group = "SensorExamples")
+//@Disabled
+public class Example1ColorSensor extends OpMode {
 
     ColorSensor colorSensor;
-    DeviceInterfaceModule CDI;
-
-    private ElapsedTime runtime = new ElapsedTime();
-
-    float hsvValues[] = {0,0,0};
+    //Array to hold the HSV values
+    float hsvValues[] = {0F,0F,0F};
 
     @Override
     public void init() {
         colorSensor = hardwareMap.colorSensor.get("colorsensor");
-        CDI = hardwareMap.deviceInterfaceModule.get("Device Interface Module 1");
-
+        //This can be used to use a different address for the MR Color Sensor
+        //It comes from the factory with 0x3C, but if you want to more than one
+        //you need ot change the reference address on one of them.
+        //colorSensor.setI2cAddress(I2cAddr.create8bit(0x3C));  //MR robotics color default address
+        //colorSensor.setI2cAddress(I2cAddr.create8bit(0x39));    //Rev robotics color default address
+        //This command is used to turn the color sensor LED on and off.  In this
+        //statement the LED is turned off.
         colorSensor.enableLed(false);
 
         telemetry.addData("Status", "Initialized");
@@ -71,34 +70,29 @@ public class ExampleColorSensorReadBeacon extends OpMode {
 
 
     @Override
-    public void start() {
+    public void start() { }
 
-        runtime.reset();
-    }
 
     @Override
     public void loop() {
-        Color.RGBToHSV(colorSensor.red()*8, colorSensor.green()*8, colorSensor.blue()*8, hsvValues);
-
-        if (colorSensor.red() > colorSensor.blue() && colorSensor.red() > colorSensor.green()){
-            CDI.setLED(0, false);
-            CDI.setLED(1, true);
+        //Pressing "A" on gamepad 1 will turn the LED off.  When not pressed it will be on.
+        if(gamepad1.a) {
+            colorSensor.enableLed(false);
+        } else {
+            colorSensor.enableLed(true);
         }
+        //Ths Java method will convert RGB values to HSV.  The values need to multiplied to have the correct input range
+        //Color.RGBToHSV(colorSensor.red() * 8, colorSensor.green() * 8, colorSensor.blue() * 8, hsvValues); //For MR HSV conversion
+        Color.RGBToHSV(colorSensor.red() * 255, colorSensor.green() * 255, colorSensor.blue() * 255, hsvValues); //For Rev HSV conversion
 
-        else if (colorSensor.blue() > colorSensor.red() && colorSensor.blue() > colorSensor.green()) {
-            CDI.setLED(0, true);
-            CDI.setLED(1, false);
-        }
-        else {
-            CDI.setLED(0, false);
-            CDI.setLED(1, false);
-        }
-
-        telemetry.addData("2 Clear", colorSensor.alpha());
-        telemetry.addData("3 Red", colorSensor.red());
-        telemetry.addData("4 Green", colorSensor.green());
-        telemetry.addData("5 Blue", colorSensor.blue());
-        telemetry.addData("6 Hue", hsvValues[0]);
+        telemetry.addData("0", "Press A on Gamepad1 to turn off LED");
+        telemetry.addData("1", "Red: " + colorSensor.red());
+        telemetry.addData("2", "Green: " + colorSensor.green());
+        telemetry.addData("3", "Blue: " + colorSensor.blue());
+        telemetry.addData("4", "Alpha: " + colorSensor.alpha());
+        telemetry.addData("5", "Hue: " + hsvValues[0]);
+        telemetry.addData("6", "Sat: " + hsvValues[1]);
+        telemetry.addData("7", "Val: " + hsvValues[2]);
     }
 
     @Override

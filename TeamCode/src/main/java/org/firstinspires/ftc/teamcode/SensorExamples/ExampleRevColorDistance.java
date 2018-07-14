@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.SensorExamples;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -45,7 +45,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 /**
  * Demonstrates how to setup and use Rev Color Distance sensor
  */
-@Autonomous(name = "Read Color and Dist Rev Sensor", group = "Example")
+@Autonomous(name = "Read Color and Dist Rev Sensor", group = "SensorExamples")
 //@Disabled
 public class ExampleRevColorDistance extends OpMode {
 

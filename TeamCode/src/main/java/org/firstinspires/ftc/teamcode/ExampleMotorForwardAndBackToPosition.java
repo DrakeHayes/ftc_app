@@ -35,81 +35,78 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp(name = "Example Drive Forward and Back", group = "Example")
-@Disabled
+@TeleOp(name = "Example Motor Forward and Back", group = "Example")
+//@Disabled
 
-public class ExampleDriveForwardAndBack extends OpMode {
+public class ExampleMotorForwardAndBackToPosition extends OpMode {
 
-    DcMotor rightMotor;
-    DcMotor leftMotor;
+    DcMotor Motor;
 
-    static final double     countsPerMotorRev       = 1440;
-    static final double     wheelDiameterInches     = 4;
-    static final double     driveGearReduction      = 1;
-    static final double     countsPerInch           = countsPerMotorRev*driveGearReduction/(wheelDiameterInches*3.14);
 
-    int targetPosition = 0;
+    static final double     countsPerMotorRev       = 1120;
+    static final double     rotations               = 3;
+
+    private int             targetPosition          = 0;
+    private boolean         cycled                  = false;
 
     @Override
     public void init() {
-        rightMotor = hardwareMap.dcMotor.get("right motor");
-        leftMotor = hardwareMap.dcMotor.get("left motor");
+        Motor = hardwareMap.dcMotor.get("motor");
 
-        rightMotor.setDirection(DcMotor.Direction.REVERSE);
-        rightMotor.setTargetPosition(targetPosition);
-        leftMotor.setTargetPosition(targetPosition);
-        rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        telemetry.addData("Status:", "Robot is Initialized");
+        Motor.setDirection(DcMotor.Direction.FORWARD);
+        Motor.setTargetPosition(targetPosition);
+        Motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     @Override
     public void init_loop() {
-        telemetry.addData("1 Right Motor Pos", rightMotor.getCurrentPosition());
-        telemetry.addData("2 Left Motor Pos", leftMotor.getCurrentPosition());
+        telemetry.addData("Status:", "Robot is Initialized");
+        telemetry.addData("1", "Motor Pos: " + Motor.getCurrentPosition());
     }
 
 
     @Override
     public void start() {
-        rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
 
     @Override
     public void loop() {
-        if (!rightMotor.isBusy() && !leftMotor.isBusy()) {
+        if (!Motor.isBusy() && !cycled) {
             if (targetPosition == 0) {
-                targetPosition = (int) (24 * countsPerInch);
-                rightMotor.setTargetPosition(targetPosition);
-                leftMotor.setTargetPosition(targetPosition);
-
+                targetPosition = (int) (rotations * countsPerMotorRev);
+                Motor.setTargetPosition(targetPosition);
             }
             else {
                 targetPosition = 0;
-                rightMotor.setTargetPosition(targetPosition);
-                leftMotor.setTargetPosition(targetPosition);
+                Motor.setTargetPosition(targetPosition);
+                cycled = true;
             }
+        } else if(!Motor.isBusy()) {
+            targetPosition = (int) (rotations * countsPerMotorRev);
+            Motor.setTargetPosition(targetPosition);
         }
 
 
-        rightMotor.setPower(.8);
-        leftMotor.setPower(.8);
+        Motor.setPower(.05);
 
         // send the info back to driver station using telemetry function.
-        telemetry.addData("1 Right Motor Power", rightMotor.getCurrentPosition());
-        telemetry.addData("2 Left Motor Power", leftMotor.getCurrentPosition());
-        telemetry.addData("3 Target Position", targetPosition);
+
+        telemetry.addData("1", "Motor Power: " + Motor.getPower());
+        telemetry.addData("2", "Motor Position: " + Motor.getCurrentPosition());
+        telemetry.addData("3", "Target Position: " + Motor.getTargetPosition());
+        telemetry.addData("4", "Motor Mode: " + Motor.getMode());
+        telemetry.addData("5", "Zero Power Mode: " + Motor.getZeroPowerBehavior());
+        telemetry.addData("6", "Motor Info: " + Motor.getConnectionInfo());
     }
 
 
     @Override
     public void stop() {
-        rightMotor.setPower(0);
-        leftMotor.setPower(0);
+        Motor.setPower(0);
     }
 }

@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.SensorExamples;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -42,7 +42,7 @@ import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
  * It assumes that the ODS sensor is configured with a name of "odssensor".
  *
  */
-@Autonomous(name = "Example MR ODS", group = "Example")
+@Autonomous(name = "Example MR ODS", group = "SensorExamples")
 @Disabled
 public class ExampleMROpticalDistance extends OpMode {
 
