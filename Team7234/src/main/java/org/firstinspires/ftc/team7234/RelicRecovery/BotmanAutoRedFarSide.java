@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.team7234;
+package org.firstinspires.ftc.team7234.RelicRecovery;
 //This imports all of the necessary modules and the like that are needed for this program
 import android.graphics.Color;
 
@@ -38,15 +38,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.team7234.common.HardwareBotman;
-import org.firstinspires.ftc.team7234.common.RelicVuMarkIdentification2;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.HardwareBotman;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.RelicVuMarkIdentification2;
 
 import static com.sun.tools.javac.util.Constants.format;
 
 
-@Autonomous(name = "Botman Auto Blue Far", group = "Example")
+@Autonomous(name = "Botman Auto Red Far", group = "Example")
 //@Disabled
-public class BotmanAutoBlueFarSide extends OpMode {
+public class BotmanAutoRedFarSide extends OpMode {
 
     //Sets up classes and variables for later use
     RelicVuMarkIdentification2 relicVuMark = new RelicVuMarkIdentification2();
@@ -63,6 +63,8 @@ public class BotmanAutoBlueFarSide extends OpMode {
         KEY,
         JEWELS,
         TWIST_FORWARD, TWIST_BACKWARD,
+        TURN_AROUND,
+        OTHER_MOVE,
         MOVE,
         MOVE_RIGHT,
         LEFT, CENTER, RIGHT,
@@ -132,28 +134,29 @@ public class BotmanAutoBlueFarSide extends OpMode {
                 Color.RGBToHSV(robot.jewelColorSensor.red() * 8, robot.jewelColorSensor.green() * 8, robot.jewelColorSensor.blue() * 8, robot.hsvValues);
 
                 robot.jewelPusher.setPosition(robot.JEWEL_PUSHER_DOWN);
+                telemetry.addData("Encoder count", robot.leftBackDrive.getCurrentPosition());
 
                 //This is for the color blue and double checking through the amount of blue so that it doesn't
                 //mistake a blue-ish lit room
                 if((robot.hsvValues[0] > 175 && robot.hsvValues[0] < 215) && (robot.hsvValues[1] > .5)){
-                    programState = currentState.TWIST_BACKWARD;
+                    programState = currentState.TWIST_FORWARD;
                 }
                 //This does the same except for the color red
                 else if((robot.hsvValues[0] > 250 || robot.hsvValues[0] < 15) && (robot.hsvValues[1] > .5)) {
-                    programState = currentState.TWIST_FORWARD;
+                    programState = currentState.TWIST_BACKWARD;
                 }
                 break;
 
             //This case twists the robot forward and then returns it to its original position
             case TWIST_FORWARD:
-                if(robot.heading() >= -15){
+                if(robot.heading() >= -10){
                     robot.arrayDrive(0.3, -0.3, 0.3, -0.3);
                 }
                 else{
-                    robot.arrayDrive(0,0,0,0);
                     robot.jewelPusher.setPosition(robot.JEWEL_PUSHER_UP);
+                    robot.arrayDrive(0,0,0,0);
                     target = robot.leftBackDrive.getCurrentPosition();
-                    programState = currentState.MOVE;
+                    programState = currentState.OTHER_MOVE;
                 }
                 break;
 
@@ -162,8 +165,30 @@ public class BotmanAutoBlueFarSide extends OpMode {
                 if(robot.heading() <= 10){
                     robot.arrayDrive(-0.3, 0.3, -0.3, 0.3);
                 }
-                else if (robot.heading() >= -15){
+                else{
                     robot.jewelPusher.setPosition(robot.JEWEL_PUSHER_UP);
+                    robot.arrayDrive(0,0,0,0);
+                    target = robot.leftBackDrive.getCurrentPosition();
+                    programState = currentState.OTHER_MOVE;
+                }
+                break;
+
+            case OTHER_MOVE:
+                if(robot.leftBackDrive.getCurrentPosition() <= target + robot.ticsPerInch(-1)){
+                    robot.driveByGyro(-0.3, 0);
+                }
+                else{
+                    robot.arrayDrive(0,0,0,0);
+                    target = robot.leftBackDrive.getCurrentPosition();
+                    programState = currentState.TURN_AROUND;
+                }
+                break;
+
+            case TURN_AROUND:
+                if(robot.heading() >= -180){
+                    robot.arrayDrive(0.3,-0.3,0.3,-0.3);
+                }
+                else{
                     robot.arrayDrive(0,0,0,0);
                     target = robot.leftBackDrive.getCurrentPosition();
                     programState = currentState.MOVE;
@@ -173,7 +198,7 @@ public class BotmanAutoBlueFarSide extends OpMode {
             //This case simply moves the robot forward 8 inches
             case MOVE:
                 if (robot.leftBackDrive.getCurrentPosition() >= target - 500){
-                    robot.driveByGyro(0.3, -15);
+                    robot.driveByGyro(0.3, -190);
                 }
                 else{
                     robot.arrayDrive(0,0,0,0);
@@ -202,6 +227,7 @@ public class BotmanAutoBlueFarSide extends OpMode {
                 break;*/
             case MOVE_RIGHT:
                 robot.arrayDrive(0,0,0,0);
+                target = robot.leftBackDrive.getCurrentPosition();
                 programState = currentState.SCORE;
                 break;
 
@@ -218,7 +244,7 @@ public class BotmanAutoBlueFarSide extends OpMode {
                 robot.leftClaw.setPosition(robot.LEFT_GRIPPER_OPEN);
                 robot.rightClaw.setPosition(robot.RIGHT_GRIPPER_OPEN);
 
-                if (robot.leftBackDrive.getCurrentPosition() <= target + robot.ticsPerInch(3)){
+                if (robot.leftBackDrive.getCurrentPosition() >= target + robot.ticsPerInch(3)){
                     robot.arrayDrive(0.5,0.5,0.5,0.5);
                 }
                 else{
@@ -230,7 +256,7 @@ public class BotmanAutoBlueFarSide extends OpMode {
                 break;
 
             case BACKUP:
-                if (robot.leftBackDrive.getCurrentPosition() >= target + robot.ticsPerInch(-2)){
+                if (robot.leftBackDrive.getCurrentPosition() <= target + robot.ticsPerInch(-2)){
                     robot.arrayDrive(0.5,0.5,0.5,0.5);
                 }
                 else{

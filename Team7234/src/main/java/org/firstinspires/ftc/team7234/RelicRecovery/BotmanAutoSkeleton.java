@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.team7234;
+package org.firstinspires.ftc.team7234.RelicRecovery;
 
 import android.graphics.Color;
 
@@ -37,8 +37,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.team7234.common.HardwareBotman;
-import org.firstinspires.ftc.team7234.common.RelicVuMarkIdentification2;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.HardwareBotman;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.RelicVuMarkIdentification2;
 
 import static com.sun.tools.javac.util.Constants.format;
 

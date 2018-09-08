@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-package org.firstinspires.ftc.team7234;
+package org.firstinspires.ftc.team7234.RelicRecovery;
 //This imports all of the necessary modules and the like that are needed for this program
 import android.graphics.Color;
 
@@ -38,15 +38,15 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.team7234.common.HardwareBotman;
-import org.firstinspires.ftc.team7234.common.RelicVuMarkIdentification2;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.HardwareBotman;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.RelicVuMarkIdentification2;
 
 import static com.sun.tools.javac.util.Constants.format;
 
 
-@Autonomous(name = "Botman Auto Red Far", group = "Example")
+@Autonomous(name = "Botman Auto Red Close", group = "Example")
 //@Disabled
-public class BotmanAutoRedFarSide extends OpMode {
+public class BotmanAutoRedCloseSide extends OpMode {
 
     //Sets up classes and variables for later use
     RelicVuMarkIdentification2 relicVuMark = new RelicVuMarkIdentification2();
@@ -165,7 +165,7 @@ public class BotmanAutoRedFarSide extends OpMode {
                 if(robot.heading() <= 10){
                     robot.arrayDrive(-0.3, 0.3, -0.3, 0.3);
                 }
-                else{
+                else if (robot.heading() >= 0){
                     robot.jewelPusher.setPosition(robot.JEWEL_PUSHER_UP);
                     robot.arrayDrive(0,0,0,0);
                     target = robot.leftBackDrive.getCurrentPosition();
@@ -194,11 +194,10 @@ public class BotmanAutoRedFarSide extends OpMode {
                     programState = currentState.MOVE;
                 }
                 break;
-
-            //This case simply moves the robot forward 8 inches
+                //This case simply moves the robot forward 8 inches
             case MOVE:
-                if (robot.leftBackDrive.getCurrentPosition() >= target - 500){
-                    robot.driveByGyro(0.3, -190);
+                if(robot.leftBackDrive.getCurrentPosition() >= target - 500){
+                    robot.driveByGyro(0.3, 180);
                 }
                 else{
                     robot.arrayDrive(0,0,0,0);
@@ -226,9 +225,14 @@ public class BotmanAutoRedFarSide extends OpMode {
                 }
                 break;*/
             case MOVE_RIGHT:
-                robot.arrayDrive(0,0,0,0);
-                target = robot.leftBackDrive.getCurrentPosition();
-                programState = currentState.SCORE;
+                if(robot.heading() <= -90){
+                    robot.arrayDrive(-0.3,0.3,-0.3,0.3);
+                }
+                else {
+                    robot.arrayDrive(0,0,0,0);
+                    target = robot.leftBackDrive.getCurrentPosition();
+                    programState = currentState.SCORE;
+                }
                 break;
 
             /*case LEFT:
@@ -256,7 +260,7 @@ public class BotmanAutoRedFarSide extends OpMode {
                 break;
 
             case BACKUP:
-                if (robot.leftBackDrive.getCurrentPosition() <= target + robot.ticsPerInch(-2)){
+                if (robot.leftBackDrive.getCurrentPosition() <= target + robot.ticsPerInch(-1)){
                     robot.arrayDrive(0.5,0.5,0.5,0.5);
                 }
                 else{

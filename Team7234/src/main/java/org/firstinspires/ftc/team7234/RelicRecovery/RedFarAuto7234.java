@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.team7234;
+package org.firstinspires.ftc.team7234.RelicRecovery;
 
 import android.graphics.Color;
 import android.util.Log;
@@ -9,13 +9,12 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.team7234.common.HardwareBotman;
-import org.firstinspires.ftc.team7234.common.RelicVuMarkIdentification2;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.HardwareBotman;
+import org.firstinspires.ftc.team7234.RelicRecovery.common.RelicVuMarkIdentification2;
 
 @Disabled
-@Autonomous(name = "NEW Red Close", group = "DB")
-public class RedCloseAuto7234 extends OpMode{
-
+@Autonomous(name = "Red Far", group = "DB")
+public class RedFarAuto7234 extends OpMode{
     private static final String logTag = RedCloseAuto7234.class.getName();
 
     private RelicVuMarkIdentification2 relicVuMark = new RelicVuMarkIdentification2();
@@ -32,8 +31,7 @@ public class RedCloseAuto7234 extends OpMode{
         MOVETOBOX,
         ALIGN,
         RELEASE,
-        RETREAT
-
+	    RETREAT
     }
     private currentState state = currentState.PREP;
 
@@ -51,9 +49,9 @@ public class RedCloseAuto7234 extends OpMode{
     private double refRB;
 
     private String jewelString;
+    private double htarget = 0.0;
 
     private double[] deltas;
-    private double htarget = 0.0;
 
     private RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.UNKNOWN;
 
@@ -63,16 +61,14 @@ public class RedCloseAuto7234 extends OpMode{
         relicVuMark.init(hardwareMap);
         telemetry.addData("Status", "Initialized");
         firstloop = true;
-        assignRefererence();
+        assignReference();
         deltas = robot.mecanumDeltas(0,0);
-    }
+    } //init
 
     @Override
     public void start(){
         relicVuMark.start();
-        Log.i(logTag, "Vumark started");
-    }
-
+    } //start
     @Override
     public void loop(){
 
@@ -89,10 +85,11 @@ public class RedCloseAuto7234 extends OpMode{
             keyRead = true;
         }
 
+
         switch (state){
             case PREP:
                 if (!robot.armLimit.getState()){
-                    gripperState = HardwareBotman.GripperState.OPEN; //Opposite of intent due to recent hardware changes TODO: Fix this for all programs in next release
+                    gripperState = HardwareBotman.GripperState.CLOSED;
                     robot.gripperSet(gripperState);
                     robot.arm.setPower(0.2);
                 }
@@ -103,9 +100,7 @@ public class RedCloseAuto7234 extends OpMode{
                     Log.i(logTag, "Preparation Completed, Gripper State is: " + gripperState.toString());
                 }
                 break;
-
             case JEWEL:
-
                 //converts RGB Reading of Color Sensor to HSV for better color detection
                 Color.RGBToHSV(
                         robot.jewelColorSensor.red()*8,
@@ -163,26 +158,15 @@ public class RedCloseAuto7234 extends OpMode{
                 }
                 else{
                     robot.mecanumDrive(0.0,0.0,0.0);
-                    assignRefererence();
+                    assignReference();
                     deltas = robot.mecanumDeltas(0.0, -37.0);
-                    Log.i(logTag, "Return Completed, moving to cryptobox."
-                            + "\nCurrent Heading is: "
+                    Log.i(logTag, "Return Completed, moving to cryptobox.\nCurrent Heading is: "
                             + robot.heading()
-                            + "\nReference Motor is now at: "
-                            + refLF
-                            + "\nTarget is: "
-                            + (refLF + -deltas[0])
                     );
                     state = currentState.MOVETOBOX;
                 }
                 break;
             case MOVETOBOX:
-                Log.v(logTag, "Moving to box, current position is: "
-                        + -robot.leftFrontDrive.getCurrentPosition()
-                        + "\nTarget is: "
-                        + (-refLF + -deltas[0])
-                );
-
                 double rot;
                 if (robot.heading() < -2.0){
                     rot = -0.2;
@@ -195,14 +179,14 @@ public class RedCloseAuto7234 extends OpMode{
                     rot = 0.0;
                 }
 
-                if (robot.leftFrontDrive.getCurrentPosition() <= refLF + -deltas[0]){
-                    robot.mecanumDrive(Math.PI, 0.3, rot);
+                if (robot.leftFrontDrive.getCurrentPosition() >= refLF + deltas[0]){
+                    robot.mecanumDrive(Math.PI, 0.5, rot);
                 }
                 else {
                     robot.mecanumDrive(0.0, 0.0, 0.0);
-                    assignRefererence();
+                    assignReference();
                     Log.i(logTag, "Box Reached, beginning spin.\nTarget LF was:"
-                            + (refLF + -deltas[0])
+                            + (refLF + deltas[0])
                             + "\nEnding Value was: "
                             + robot.leftFrontDrive.getCurrentPosition()
                     );
@@ -210,14 +194,14 @@ public class RedCloseAuto7234 extends OpMode{
                 }
                 break;
             case ALIGN:
-
                 if(firstloop){
-                    htarget = (robot.heading()+45.0+180.0)%360.0-180.0;
+                    htarget = (robot.heading()+135.0+180.0)%360.0-180.0;
                     firstloop = false;
                 }
                 else{
                     if (robot.heading() >= htarget - 3.0 && robot.heading() <= htarget +3.0){
                         robot.mecanumDrive(0.0,0.0,0.0);
+			            assignReference();
                         Log.i(logTag, "Alignment Completed, Releasing Glyph.\nCurrent Heading is: "
                                 + robot.heading()
                         );
@@ -231,16 +215,16 @@ public class RedCloseAuto7234 extends OpMode{
             case RELEASE:
                 gripperState = HardwareBotman.GripperState.HALFWAY;
                 robot.gripperSet(gripperState);
-                deltas = robot.mecanumDeltas(0.0, -3.0);
-                break;
-            case RETREAT:
-                if(robot.leftBackDrive.getCurrentPosition() >= deltas[0]){
-                    robot.mecanumDrive(Math.PI, 0.5, 0.0);
-                }
-                else{
-                    robot.mecanumDrive(0,0,0);
-                }
-                break;
+		        state = currentState.RETREAT;
+		        break;
+	        case RETREAT:
+		        if(robot.leftBackDrive.getCurrentPosition() >= refLB + robot.mecanumDeltas(0, -3)[0]){
+	    	        robot.mecanumDrive(Math.PI, 0.5, 0.0);
+	    	    }
+	    	    else{
+	    	        robot.mecanumDrive(0,0,0);
+	    	    }
+	    	    break;
         } //state switch
 
     } //loop
@@ -255,11 +239,11 @@ public class RedCloseAuto7234 extends OpMode{
         );
     }
 
-    private void assignRefererence(){
+    private void assignReference(){
         refLB = robot.leftBackDrive.getCurrentPosition();
         refLF = robot.leftFrontDrive.getCurrentPosition();
         refRB = robot.rightBackDrive.getCurrentPosition();
         refRF = robot.rightFrontDrive.getCurrentPosition();
-    }
+    } //assignReference
 
 }
