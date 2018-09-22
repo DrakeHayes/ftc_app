@@ -2,6 +2,7 @@ package org.firstinspires.ftc.team7234.RelicRecovery.opmodes.teleop;
 
 import android.util.Log;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,6 +10,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.team7234.RelicRecovery.common.HardwareBotman;
 
+@Disabled
 @TeleOp(name="BotmanTeleOp", group="Pushbot")
 public class BotmanTeleOp extends OpMode{
 

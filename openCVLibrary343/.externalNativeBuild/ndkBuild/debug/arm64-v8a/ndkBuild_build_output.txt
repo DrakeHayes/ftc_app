@@ -1,0 +1,11 @@
+Android NDK: OpenCV: You should ignore warning about 'non-system libraries in linker flags' and 'opencv_java' library.    
+Android NDK:         'OPENCV_INSTALL_MODULES:=on' can be used to build APK with included OpenCV binaries    
+rm -f /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/*
+rm -f /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdbserver
+rm -f /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdb.setup
+mkdir -p /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a
+echo [arm64-v8a] "Gdbserver      ": "[aarch64-linux-android] /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdbserver"
+install -p /home/alvis/Android/Sdk/ndk-bundle/prebuilt/android-arm64/gdbserver/gdbserver /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdbserver
+echo [arm64-v8a] "Gdbsetup       ": "/home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdb.setup"
+echo "set solib-search-path /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/obj/local/arm64-v8a" > /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdb.setup
+echo "directory /home/alvis/Android/Sdk/ndk-bundle/sysroot /home/alvis/Android/Sdk/ndk-bundle/sources/cxx-stl/system" >> /home/alvis/Projects/ftc_app/openCVLibrary343/build/intermediates/ndkBuild/debug/lib/arm64-v8a/gdb.setup
