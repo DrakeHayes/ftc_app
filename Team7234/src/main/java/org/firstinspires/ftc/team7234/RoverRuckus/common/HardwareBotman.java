@@ -35,14 +35,22 @@ public class HardwareBotman {
     private HardwareMap hwMap   = null;
     private ElapsedTime period  = new ElapsedTime();
 
+    public long time;
+
+    private final String logTag = HardwareBotman.class.getName();
+
     public void init(HardwareMap ahwMap){
+
+        period.reset();
         //Save reference to Hardware map
         hwMap = ahwMap;
 
         //Define and initialize Motors
-
         leftWheel = hwMap.get(DcMotor.class, "Left Wheel");
         rightWheel = hwMap.get(DcMotor.class, "Right Wheel");
+
+
+
 
 
         //Set all motors to zero power
@@ -55,7 +63,9 @@ public class HardwareBotman {
         //Define sensors
 
         //Set up OpenCV
-        
+
+
+        time = period.nanoseconds();
     }
 
     public void resetEncoders(){

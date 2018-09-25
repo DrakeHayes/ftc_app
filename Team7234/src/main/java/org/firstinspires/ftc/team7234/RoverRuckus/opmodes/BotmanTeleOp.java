@@ -16,9 +16,16 @@ public class BotmanTeleOp extends OpMode {
 
     @Override
     public void init() {
-        robot.init(hardwareMap);
+        try {
+            robot.init(hardwareMap);
+        }
+        catch (IllegalArgumentException ex){
+            Log.e(logTag, ex.toString());
+        }
+        long t = robot.time;
 
-        Log.i(logTag, "Robot Initialized");
+
+        Log.i(logTag, "Robot Initialized in " + t + " ns");
 
     }
 
