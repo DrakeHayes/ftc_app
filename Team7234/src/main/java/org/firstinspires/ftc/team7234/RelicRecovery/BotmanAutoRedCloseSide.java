@@ -34,6 +34,7 @@ package org.firstinspires.ftc.team7234.RelicRecovery;
 import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -43,9 +44,9 @@ import org.firstinspires.ftc.team7234.RelicRecovery.common.RelicVuMarkIdentifica
 
 import static com.sun.tools.javac.util.Constants.format;
 
-
+@Disabled
 @Autonomous(name = "Botman Auto Red Close", group = "Example")
-//@Disabled
+
 public class BotmanAutoRedCloseSide extends OpMode {
 
     //Sets up classes and variables for later use

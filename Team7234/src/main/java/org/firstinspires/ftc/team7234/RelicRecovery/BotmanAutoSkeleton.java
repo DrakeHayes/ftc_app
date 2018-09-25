@@ -34,6 +34,7 @@ package org.firstinspires.ftc.team7234.RelicRecovery;
 import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
@@ -45,6 +46,7 @@ import static com.sun.tools.javac.util.Constants.format;
 /**
  * Demonstrates empty OpMode
  */
+@Disabled
 @Autonomous(name = "Botman Auto Test", group = "Example")
 //@Disabled
 public class BotmanAutoSkeleton extends OpMode {

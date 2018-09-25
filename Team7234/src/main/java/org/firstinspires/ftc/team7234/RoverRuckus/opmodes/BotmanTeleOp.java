@@ -2,12 +2,14 @@ package org.firstinspires.ftc.team7234.RoverRuckus.opmodes;
 
 import android.util.Log;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.team7234.RoverRuckus.common.HardwareBotman;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+@Disabled
 @TeleOp(name = "Botman TeleOp", group = "Botman")
 public class BotmanTeleOp extends OpMode {
 
