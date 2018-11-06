@@ -9,12 +9,15 @@ import org.firstinspires.ftc.team7234.RoverRuckus.common.HardwareBotman;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@Disabled
+
 @TeleOp(name = "Botman TeleOp", group = "Botman")
 public class BotmanTeleOp extends OpMode {
 
     private HardwareBotman robot = new HardwareBotman();
     private final String logTag = HardwareBotman.class.getName();
+
+    double leftSpeed;
+    double rightSpeed;
 
     @Override
     public void init() {
@@ -24,18 +27,29 @@ public class BotmanTeleOp extends OpMode {
         catch (IllegalArgumentException ex){
             Log.e(logTag, ex.toString());
         }
-        long t = robot.time;
 
 
-        Log.i(logTag, "Robot Initialized in " + t + " ns");
+        Log.i(logTag, "Robot Initialized in " + robot.time + " ms");
 
     }
 
     @Override
     public void loop() {
 
+        rightSpeed = gamepad1.right_stick_y;
+        leftSpeed = gamepad1.left_stick_y;
+
+        robot.rightWheel.setPower(rightSpeed);
+        robot.leftWheel.setPower(leftSpeed);
+
 
     }
 
+
+    @Override
+    public void stop(){
+        robot.rightWheel.setPower(0.0);
+        robot.leftWheel.setPower(0.0);
+    }
 
 }

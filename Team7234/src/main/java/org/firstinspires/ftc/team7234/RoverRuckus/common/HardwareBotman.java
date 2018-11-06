@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -15,8 +16,8 @@ public class HardwareBotman {
     public HardwareBotman(){}
 
     //region Members
-    DcMotor rightWheel;
-    DcMotor leftWheel;
+    public DcMotor rightWheel;
+    public DcMotor leftWheel;
 
     DcMotor armExtension;
     DcMotor armElbow;
@@ -35,7 +36,7 @@ public class HardwareBotman {
     private HardwareMap hwMap   = null;
     private ElapsedTime period  = new ElapsedTime();
 
-    public long time;
+    public int time;
 
     private final String logTag = HardwareBotman.class.getName();
 
@@ -50,10 +51,12 @@ public class HardwareBotman {
         rightWheel = hwMap.get(DcMotor.class, "Right Wheel");
 
 
-
-
+        leftWheel.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightWheel.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Set all motors to zero power
+        leftWheel.setPower(0.);
+        rightWheel.setPower(0.);
 
 
         //resets encoders
@@ -65,13 +68,16 @@ public class HardwareBotman {
         //Set up OpenCV
 
 
-        time = period.nanoseconds();
+        time = (int)period.milliseconds();
     }
 
-    public void resetEncoders(){
-        leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+
+    public void resetEncoders(){
+        while (leftWheel.getCurrentPosition() != 0 && rightWheel.getCurrentPosition() != 0) {
+            leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
         leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
