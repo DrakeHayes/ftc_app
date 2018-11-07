@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.team7234.RoverRuckus.common;
 
+import android.graphics.Camera;
 import android.util.Log;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -30,6 +31,7 @@ public class HardwareBotman {
 
     BNO055IMU imu;
     Orientation angles;
+
     //endregion
 
     /* local OpMode members. */
@@ -81,5 +83,6 @@ public class HardwareBotman {
         leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+
 
 }
