@@ -17,7 +17,7 @@ public class AutoBase extends OpMode {
     public void init() {
 
         robot.init(hardwareMap);
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
 
 
 

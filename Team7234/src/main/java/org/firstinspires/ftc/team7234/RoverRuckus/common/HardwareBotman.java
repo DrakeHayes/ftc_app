@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Detector;
 import org.opencv.android.OpenCVLoader;
 
 public class HardwareBotman {
@@ -31,6 +32,8 @@ public class HardwareBotman {
 
     BNO055IMU imu;
     Orientation angles;
+
+    Detector detector;
 
     //endregion
 
@@ -68,6 +71,7 @@ public class HardwareBotman {
         //Define sensors
 
         //Set up OpenCV
+        Detector detector = new Detector();
 
 
         time = (int)period.milliseconds();
