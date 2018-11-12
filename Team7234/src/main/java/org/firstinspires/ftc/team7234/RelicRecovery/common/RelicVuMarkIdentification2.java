@@ -36,6 +36,8 @@ package org.firstinspires.ftc.team7234.RelicRecovery.common;
 //to call loop: relicVuMark.loop();                                                                //
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -47,7 +49,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
-@Autonomous(name = "Relic VuMark Id", group = "Vuforia")
+//@Autonomous(name = "Relic VuMark Id", group = "Vuforia")
 //@Disabled
 public class RelicVuMarkIdentification2 {
 
@@ -91,6 +93,7 @@ public class RelicVuMarkIdentification2 {
     public void start() {
         relicTrackables.activate();
     }
+
 
 
     public RelicRecoveryVuMark readKey() {

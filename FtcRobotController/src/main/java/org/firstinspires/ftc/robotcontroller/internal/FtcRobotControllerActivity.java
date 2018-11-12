@@ -104,7 +104,6 @@ import org.firstinspires.ftc.ftccommon.internal.FtcRobotControllerWatchdogServic
 import org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity;
 import org.firstinspires.ftc.robotcore.external.navigation.MotionDetection;
 import org.firstinspires.ftc.robotcore.internal.hardware.DragonboardLynxDragonboardIsPresentPin;
-import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
 import org.firstinspires.ftc.robotcore.internal.network.WifiDirectDeviceNameManager;
 import org.firstinspires.ftc.robotcore.internal.network.PreferenceRemoterRC;
@@ -131,25 +130,28 @@ import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
-import ftc.vision.FrameGrabber;
-
 @SuppressWarnings("WeakerAccess")
 public class FtcRobotControllerActivity extends Activity
   {
+
     ////////////// START VISION PROCESSING CODE //////////////
 
-    // Loads camera view of OpenCV for us to use. This lets us see using OpenCV
-    private CameraBridgeViewBase cameraBridgeViewBase;
+    public static CameraBridgeViewBase cameraBridgeViewBase;
 
     void myOnCreate(){
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
       cameraBridgeViewBase = (JavaCameraView) findViewById(R.id.show_camera_activity_java_surface_view);
-      new FrameGrabber(cameraBridgeViewBase);
     }
 
-    //when the "Grab" button is pressed
-    public void frameButtonOnClick(View v){
+    void myOnResume(){
+      if (!OpenCVLoader.initDebug()) {
+        Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
+      } else {
+        Log.d(TAG, "OpenCV library found inside package. Using it!");
+        mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+      }
     }
 
     void myOnPause(){
@@ -158,21 +160,12 @@ public class FtcRobotControllerActivity extends Activity
       }
     }
 
-    void myOnResume(){
-      if (!OpenCVLoader.initDebug()) {
-        Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
-      } else {
-        Log.d(TAG, "OpenCV library found inside package. Using it!");
-        mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-      }
-    }
-
     public void myOnDestroy() {
       if (cameraBridgeViewBase != null) {
         cameraBridgeViewBase.disableView();
       }
     }
+
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
       @Override
@@ -203,6 +196,10 @@ public class FtcRobotControllerActivity extends Activity
         }
       }
     };
+
+    ////////////// END VISION PROCESSING CODE //////////////
+
+
   public static final String TAG = "RCActivity";
   public String getTag() { return TAG; }
 
@@ -245,9 +242,6 @@ public class FtcRobotControllerActivity extends Activity
   protected WifiMuteStateMachine wifiMuteStateMachine;
   protected MotionDetection motionDetection;
 
-  static{
-    OpenCVLoader.initDebug();
-  }
 
   protected class RobotRestarter implements Restarter {
 
@@ -346,6 +340,9 @@ public class FtcRobotControllerActivity extends Activity
     eventLoop = null;
 
     setContentView(R.layout.activity_ftc_controller);
+
+    ///////////IMAGE PROCESSING CODE///////////
+    myOnCreate();
 
     preferencesHelper = new PreferencesHelper(TAG, context);
     preferencesHelper.writeBooleanPrefIfDifferent(context.getString(R.string.pref_rc_connected), true);
@@ -461,12 +458,16 @@ public class FtcRobotControllerActivity extends Activity
   @Override
   protected void onResume() {
     super.onResume();
+    myOnResume();
     RobotLog.vv(TAG, "onResume()");
   }
 
   @Override
   protected void onPause() {
     super.onPause();
+
+    myOnPause();
+
     RobotLog.vv(TAG, "onPause()");
     if (programmingModeController.isActive()) {
       programmingModeController.stopProgrammingMode();
@@ -484,6 +485,10 @@ public class FtcRobotControllerActivity extends Activity
   @Override
   protected void onDestroy() {
     super.onDestroy();
+
+    myOnDestroy();
+
+
     RobotLog.vv(TAG, "onDestroy()");
 
     shutdownRobot();  // Ensure the robot is put away to bed

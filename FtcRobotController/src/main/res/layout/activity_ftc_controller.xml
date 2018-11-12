@@ -200,6 +200,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:id="@+id/frameLayout">
+
       <org.opencv.android.JavaCameraView
           android:layout_width="fill_parent"
           android:layout_height="fill_parent"
@@ -208,7 +209,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           opencv:show_fps="true"
           opencv:camera_id="any" />
 
-      <Button
+      <!--<Button
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:text="Grab"
@@ -223,7 +224,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           android:text="[RESULT]"
           android:id="@+id/resultText"
           android:layout_gravity="end|top"
-          android:textColor="#ff0000" />
+          android:textColor="#ff0000" />-->
 
     </FrameLayout>
   </RelativeLayout>

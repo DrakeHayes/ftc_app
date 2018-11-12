@@ -3,6 +3,7 @@ package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
+import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
@@ -22,12 +23,26 @@ public class Detector {
     private MatOfRect silverMineralDetections = new MatOfRect();
     private MatOfRect goldMineralDetections = new MatOfRect();
 
+    private final static int FRAME_WIDTH = 176;
+    private final static int FRAME_HEIGHT = 144;
+
+    public static FrameGrabber frameGrabber;
+
+    private Mat frame;
+
     public Detector(){
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        frameGrabber = new FrameGrabber(FtcRobotControllerActivity.cameraBridgeViewBase, FRAME_WIDTH, FRAME_HEIGHT);
     }
 
+    public void update(){
+        frame = frameGrabber.getFrame();
+    }
 
-    public void findMinerals(Mat frame, ArrayList<Mineral> minerals){
+    public Mat getFrame() {
+        return frame;
+    }
+
+    public void findMinerals(ArrayList<Mineral> minerals){
 
         if (!minerals.isEmpty()){
             minerals.clear();
