@@ -23,12 +23,14 @@ public class Detector {
     private MatOfRect silverMineralDetections = new MatOfRect();
     private MatOfRect goldMineralDetections = new MatOfRect();
 
-    private final static int FRAME_WIDTH = 176;
-    private final static int FRAME_HEIGHT = 144;
+    private final static int FRAME_WIDTH = 800;
+    private final static int FRAME_HEIGHT = 450;
 
-    public static FrameGrabber frameGrabber;
+    private static FrameGrabber frameGrabber;
 
     private Mat frame;
+
+    private ArrayList<Mineral> minerals;
 
     public Detector(){
         frameGrabber = new FrameGrabber(FtcRobotControllerActivity.cameraBridgeViewBase, FRAME_WIDTH, FRAME_HEIGHT);
@@ -36,10 +38,15 @@ public class Detector {
 
     public void update(){
         frame = frameGrabber.getFrame();
+        findMinerals(minerals);
     }
 
     public Mat getFrame() {
         return frame;
+    }
+
+    public ArrayList<Mineral> getMinerals() { //By setting it up like this, we can avoid calling the resource-intensive detectMultiScale every time we need to check the minerals.
+        return minerals;
     }
 
     public void findMinerals(ArrayList<Mineral> minerals){

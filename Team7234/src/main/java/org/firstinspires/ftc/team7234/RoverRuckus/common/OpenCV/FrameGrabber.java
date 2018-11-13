@@ -42,12 +42,10 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
         processFrame(inputFrame);
-
-
         return frame;
     }
 
-    public Mat getFrame(){
+    Mat getFrame(){
         return frame;
     }
 

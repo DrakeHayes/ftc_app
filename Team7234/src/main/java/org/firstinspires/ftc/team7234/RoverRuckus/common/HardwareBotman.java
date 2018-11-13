@@ -21,13 +21,11 @@ public class HardwareBotman {
     public DcMotor rightWheel;
     public DcMotor leftWheel;
 
-    DcMotor armExtension;
-    DcMotor armElbow;
-    DcMotor armWrist;
+    //DcMotor armExtension;
 
-    DcMotor collector;
+    //DcMotor collector;
 
-    DcMotor latchExtender;
+    //DcMotor latchExtender;
 
 
     BNO055IMU imu;
@@ -45,7 +43,15 @@ public class HardwareBotman {
 
     private final String logTag = HardwareBotman.class.getName();
 
+    public void init(HardwareMap ahwMap, boolean useCamera){
+        if (useCamera){
+            detector = new Detector();
+        }
+        init(ahwMap);
+    }
+
     public void init(HardwareMap ahwMap){
+
 
         period.reset();
         //Save reference to Hardware map
@@ -69,10 +75,6 @@ public class HardwareBotman {
         //Define and initialize servos
 
         //Define sensors
-
-        //Set up OpenCV
-        Detector detector = new Detector();
-
 
         time = (int)period.milliseconds();
     }
