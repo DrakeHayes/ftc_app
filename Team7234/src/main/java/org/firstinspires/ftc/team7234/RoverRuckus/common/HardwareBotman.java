@@ -20,6 +20,7 @@ public class HardwareBotman {
     //region Members
     public DcMotor rightWheel;
     public DcMotor leftWheel;
+    public DcMotor extension;
 
     //DcMotor armExtension;
 
@@ -58,8 +59,10 @@ public class HardwareBotman {
         hwMap = ahwMap;
 
         //Define and initialize Motors
-        leftWheel = hwMap.get(DcMotor.class, "Left Wheel");
-        rightWheel = hwMap.get(DcMotor.class, "Right Wheel");
+        leftWheel = hwMap.get(DcMotor.class, "left_drive");
+        rightWheel = hwMap.get(DcMotor.class, "right_drive");
+
+        extension = hwMap.get(DcMotor.class, "latch");
 
 
         leftWheel.setDirection(DcMotorSimple.Direction.FORWARD);

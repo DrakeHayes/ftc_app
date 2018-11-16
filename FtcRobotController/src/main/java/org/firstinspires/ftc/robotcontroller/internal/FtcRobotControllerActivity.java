@@ -45,7 +45,9 @@ import android.hardware.usb.UsbManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -134,14 +136,35 @@ import org.opencv.android.OpenCVLoader;
 public class FtcRobotControllerActivity extends Activity
   {
 
-    ////////////// START VISION PROCESSING CODE //////////////
+    static {
+      uiHandler = new Handler(Looper.getMainLooper());
+    }
+
+    public static void runOnUi(Runnable runnable){ //Trying to figure out how to run things on the UI thread since I can't access runOnUiThread
+      uiHandler.post(runnable);
+    }
+
+
+
+    private static Context statContext;
+    public static Context getActivityContext(){
+      return statContext;
+    }
+
+    ////////////// START CUSTOM VISION PROCESSING CODE //////////////
 
     public static CameraBridgeViewBase cameraBridgeViewBase;
+
+    public static Handler uiHandler;
+
+
+
 
     void myOnCreate(){
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
       cameraBridgeViewBase = (JavaCameraView) findViewById(R.id.show_camera_activity_java_surface_view);
+      statContext = context;
     }
 
     void myOnResume(){

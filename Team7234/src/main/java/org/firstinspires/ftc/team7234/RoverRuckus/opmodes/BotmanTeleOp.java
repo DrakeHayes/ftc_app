@@ -22,7 +22,7 @@ public class BotmanTeleOp extends OpMode {
     @Override
     public void init() {
         try {
-            robot.init(hardwareMap);
+            robot.init(hardwareMap, false);
         }
         catch (IllegalArgumentException ex){
             Log.e(logTag, ex.toString());
@@ -41,7 +41,6 @@ public class BotmanTeleOp extends OpMode {
 
         robot.rightWheel.setPower(rightSpeed);
         robot.leftWheel.setPower(leftSpeed);
-
 
     }
 

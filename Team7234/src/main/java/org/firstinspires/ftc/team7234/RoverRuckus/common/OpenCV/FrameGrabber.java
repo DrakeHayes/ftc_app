@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
 
+import android.app.Activity;
+import android.util.Log;
 import android.view.SurfaceView;
 
+import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -14,15 +17,31 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
 
     private Mat frame, tmp1, tmp2;
+    CameraBridgeViewBase cameraBase;
 
+    private final String TAG = "FrameGrabber";
 
-    public FrameGrabber(CameraBridgeViewBase cameraBridgeViewBase, int frameWidthRequest, int frameHeightRequest) {
-        cameraBridgeViewBase.setVisibility(SurfaceView.VISIBLE);
+    public FrameGrabber(final CameraBridgeViewBase cameraBridgeViewBase, final int frameWidthRequest, final int frameHeightRequest) {
 
-        cameraBridgeViewBase.setMinimumWidth(frameWidthRequest);
-        cameraBridgeViewBase.setMinimumHeight(frameHeightRequest);
-        cameraBridgeViewBase.setMaxFrameSize(frameWidthRequest, frameHeightRequest);
-        cameraBridgeViewBase.setCvCameraViewListener(this);
+        try {
+            cameraBase = cameraBridgeViewBase;
+            FtcRobotControllerActivity.runOnUi(new Runnable() {
+                @Override
+                public void run() {
+                    cameraBridgeViewBase.setVisibility(SurfaceView.VISIBLE);
+
+                    cameraBridgeViewBase.setMinimumWidth(frameWidthRequest);
+                    cameraBridgeViewBase.setMinimumHeight(frameHeightRequest);
+                    cameraBridgeViewBase.setMaxFrameSize(frameWidthRequest, frameHeightRequest);
+                    cameraBridgeViewBase.setCvCameraViewListener(FrameGrabber.this);
+                    cameraBridgeViewBase.enableView();
+                }
+            });
+        }
+        catch (Exception ex){
+            Log.w(TAG,"Exception in constructor: " + ex.getMessage());
+        }
+
     }
 
     @Override
@@ -33,9 +52,21 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
         tmp2 = new Mat(width, height, CvType.CV_8UC4);
     }
 
+    public void stop(){
+        FtcRobotControllerActivity.runOnUi(new Runnable() {
+            @Override
+            public void run() {
+                cameraBase.disableView();
+                cameraBase.setVisibility(SurfaceView.INVISIBLE);
+
+            }
+        });
+
+    }
+
     @Override
     public void onCameraViewStopped() {
-
+        stop();
     }
 
     @Override

@@ -34,6 +34,8 @@ public class OpenCVTestingOp extends OpMode {
 
     private static final String TAG = "OpenCV Testing OpMode";
 
+    private Runnable mineralSensor;
+
 
     @Override
     public void init() {
@@ -41,29 +43,58 @@ public class OpenCVTestingOp extends OpMode {
             robot.init(hardwareMap);
         }
         catch (Exception ex){
-            ex.printStackTrace();
+            Log.e(TAG, ex.getMessage());
         }
+    }
 
-        Runnable mineralSensor = new Runnable() {
-            @Override
-            public void run() {
-                robot.detector.update();
-                minerals = robot.detector.getMinerals();
+    @Override
+    public void start() {
+        try { //Starts the mineral sensor process on another Thread
+            mineralSensor = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        robot.detector.update();
 
-                Log.i(TAG, "Detected " + goldCount(minerals) + " Gold Minerals");
-                Log.i(TAG, "Detected " + silverCount(minerals) + " Silver Minerals");
 
-            }
-        };
+                        minerals = robot.detector.getMinerals();
 
-        this.timer = Executors.newSingleThreadScheduledExecutor();
-        this.timer.scheduleAtFixedRate(mineralSensor, 0, timeDelay, TimeUnit.MILLISECONDS);
+                        Log.i(TAG, "Detected " + goldCount(minerals) + " Gold Minerals");
+                        Log.i(TAG, "Detected " + silverCount(minerals) + " Silver Minerals");
+
+                        telemetry.addData("Gold Minerals Seen ", goldCount(minerals));
+                        telemetry.addData("Silver Minerals Seen ", silverCount(minerals));
+
+                    }
+                    catch (Exception ex){
+                        Log.w(TAG, ex.getMessage());
+                    }
+
+                }
+            };
+            this.timer = Executors.newSingleThreadScheduledExecutor();
+            this.timer.scheduleAtFixedRate(mineralSensor, 500, timeDelay, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception ex){
+            Log.e(TAG, ex.getMessage());
+        }
 
     }
 
     @Override
     public void loop() {
         //Empty, as I am instead looping via an executor service. I have no Idea if this will work, but I'm doing it anyway.
+    }
+
+    @Override
+    public void stop() {
+        if (this.timer != null){
+            Log.i(TAG, "Stopping timer");
+            this.timer.shutdownNow();
+        }
+
+        robot.detector.stop();
+
     }
 
     private static int goldCount(ArrayList<Mineral> minerals){
