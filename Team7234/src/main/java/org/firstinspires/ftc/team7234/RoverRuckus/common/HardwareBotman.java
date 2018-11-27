@@ -85,12 +85,14 @@ public class HardwareBotman {
 
 
     public void resetEncoders(){
-        while (leftWheel.getCurrentPosition() != 0 && rightWheel.getCurrentPosition() != 0) {
-            leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        }
+
+        leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
 

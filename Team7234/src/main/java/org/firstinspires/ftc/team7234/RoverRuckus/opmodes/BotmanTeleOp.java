@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.HardwareBotman;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 
 @TeleOp(name = "Botman TeleOp", group = "Botman")
@@ -18,6 +19,8 @@ public class BotmanTeleOp extends OpMode {
 
     double leftSpeed;
     double rightSpeed;
+
+    double extendSpeed;
 
     @Override
     public void init() {
@@ -31,6 +34,9 @@ public class BotmanTeleOp extends OpMode {
 
         Log.i(logTag, "Robot Initialized in " + robot.time + " ms");
 
+        robot.resetEncoders();
+        robot.extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
     }
 
     @Override
@@ -38,9 +44,15 @@ public class BotmanTeleOp extends OpMode {
 
         rightSpeed = gamepad1.right_stick_y;
         leftSpeed = gamepad1.left_stick_y;
+        extendSpeed = gamepad1.left_trigger - gamepad1.right_trigger;
 
         robot.rightWheel.setPower(rightSpeed);
         robot.leftWheel.setPower(leftSpeed);
+        robot.extension.setPower(extendSpeed);
+
+        telemetry.addData("Extension Position", robot.extension.getCurrentPosition());
+
+
 
     }
 
@@ -49,6 +61,7 @@ public class BotmanTeleOp extends OpMode {
     public void stop(){
         robot.rightWheel.setPower(0.0);
         robot.leftWheel.setPower(0.0);
+        robot.extension.setPower(0.0);
     }
 
 }

@@ -21,7 +21,7 @@ public class MineralsResult {
     }
 
 
-    private MineralPosition evaluatePosition(ArrayList<Mineral> minerals){
+    public static MineralPosition evaluatePosition(ArrayList<Mineral> minerals){
 
         Collections.sort(minerals, Mineral.MineralSort.WIDTH_SORT);
 

@@ -13,6 +13,10 @@ apply from: '../build.common.gradle'
 android {
     buildToolsVersion '28.0.2'
     sourceSets { main { jni.srcDirs = ['src/main/jni', 'src/main/jniLibs/'] } }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 dependencies {
     implementation project(':openCVLibrary343')
