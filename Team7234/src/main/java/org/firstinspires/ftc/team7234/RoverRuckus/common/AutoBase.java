@@ -5,18 +5,19 @@ import android.util.Log;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.vuforia.Vuforia;
 
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.GoldMineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralPosition;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralsResult;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.SilverMineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.AllianceColor;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
-import org.opencv.core.Core;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.OptionalDouble;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +33,13 @@ public class AutoBase extends OpMode {
     private static final int sampleRate = 1; //How many samples to take, per second.
     private static final int timeDelay = 1000/sampleRate; //Delay between samples in milliseconds
 
-    private ArrayList<Mineral> minerals = new ArrayList<>();
+    private ArrayList<Mineral> allMinerals = new ArrayList<>();
     private LinkedList<MineralPosition> positions = new LinkedList<>();
+
+    private MineralPosition finalPos;
+
+    private final double LEFT_MINERAL_THETA = -15;
+    private final double RIGHT_MINERAL_THETA = 15;
 
 
 
@@ -57,6 +63,7 @@ public class AutoBase extends OpMode {
         FORWARD,
         EVALUATE_MINERALS,
         TURN_TO_MINERAL,
+        REMOVE_MINERAL,
         GO_TO_CORNER,
         STOP
     }
@@ -84,7 +91,8 @@ public class AutoBase extends OpMode {
                         robot.detector.update();
 
 
-                        minerals = robot.detector.getMinerals();
+                        List<Mineral> minerals = robot.detector.getMinerals();
+                        allMinerals.addAll(minerals);
 
                         positions.add(MineralsResult.evaluatePosition(minerals));
 
@@ -130,12 +138,122 @@ public class AutoBase extends OpMode {
                 break;
             case EVALUATE_MINERALS:
 
+                ArrayList<Mineral> goldReadings = new ArrayList<>();
+                ArrayList<Mineral> silverReadings = new ArrayList<>();
+
+                for (Mineral m :
+                        allMinerals) {
+                    if (m instanceof GoldMineral) {
+                        goldReadings.add(m);
+                    }
+                    else if (m instanceof SilverMineral){
+                        silverReadings.add(m);
+                    }
+                }
+
+                ArrayList<Integer> goldPositions = new ArrayList<>();
+                ArrayList<Integer> silverPositions = new ArrayList<>();
+
+                for (Mineral g :
+                        goldReadings) {
+                    goldPositions.add(g.getX());
+                }
+                for (Mineral s :
+                        silverReadings) {
+                    silverPositions.add(s.getX());
+                }
+
+                //region Averaging
+                OptionalDouble avgGold = goldPositions.stream().mapToDouble(a -> a).average();
+                OptionalDouble avgSilver = silverPositions.stream().mapToDouble(a -> a).average();
+
+                ArrayList<Integer> leftSilverPositions = new ArrayList<>();
+                ArrayList<Integer> rightSilverPositions = new ArrayList<>();
+
+                if (avgSilver.isPresent()){
+                    for (Integer i :
+                            silverPositions) {
+                        if (i < avgSilver.getAsDouble()) {
+                            leftSilverPositions.add(i);
+                        }
+                        else {
+                            rightSilverPositions.add(i);
+                        }
+                    }
+                }
+                else {
+                    finalPos = MineralPosition.CENTER;
+                }
+
+
+                OptionalDouble leftSilver = leftSilverPositions.stream().mapToDouble(a -> a).average();
+
+                OptionalDouble rightSilver = rightSilverPositions.stream().mapToDouble(a -> a).average();
+
+                //endregion
+
+                if (avgGold.isPresent() && leftSilver.isPresent() && rightSilver.isPresent()){
+                    if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
+                        finalPos = MineralPosition.LEFT;
+                    }
+                    else if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
+                        finalPos = MineralPosition.RIGHT;
+                    }
+                    else{
+                        finalPos = MineralPosition.CENTER;
+                    }
+                }
+                else if (avgGold.isPresent() && leftSilver.isPresent()){
+                    if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
+                        finalPos = MineralPosition.LEFT;
+                    }
+                    else{
+                        finalPos = MineralPosition.CENTER;
+                    }
+                }
+                else if (avgGold.isPresent() && rightSilver.isPresent()){
+                    if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
+                        finalPos = MineralPosition.RIGHT;
+                    }
+                    else{
+                        finalPos = MineralPosition.CENTER;
+                    }
+                }
+                else {
+                    finalPos = MineralPosition.CENTER;
+                }
+
+                state = CurrentState.TURN_TO_MINERAL;
                 break;
             case TURN_TO_MINERAL:
+                switch (finalPos){
+                    case CENTER:
+                        state = CurrentState.REMOVE_MINERAL;
+                        break;
+                    case LEFT:
+                        robot.leftWheel.setPower(-0.5);
+                        robot.rightWheel.setPower(0.5);
+                        Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
+                        if (robot.heading() < LEFT_MINERAL_THETA){
+                            state = CurrentState.REMOVE_MINERAL;
+                        }
+                        break;
+                    case RIGHT:
+                        robot.leftWheel.setPower(0.5);
+                        robot.rightWheel.setPower(-0.5);
+                        Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
+                        if (robot.heading() < RIGHT_MINERAL_THETA){
+                            state = CurrentState.REMOVE_MINERAL;
+                        }
+                        break;
+                }
                 break;
-            case FORWARD:
+            case REMOVE_MINERAL:
                 break;
             case STOP:
+                robot.leftWheel.setPower(0.0);
+                robot.rightWheel.setPower(0.0);
+                robot.extension.setPower(0.0);
                 break;
         }
 
@@ -147,6 +265,7 @@ public class AutoBase extends OpMode {
     @Override
     public void stop() {
         if (this.timer != null){
+
             Log.i(TAG, "Stopping timer");
             this.timer.shutdownNow();
         }

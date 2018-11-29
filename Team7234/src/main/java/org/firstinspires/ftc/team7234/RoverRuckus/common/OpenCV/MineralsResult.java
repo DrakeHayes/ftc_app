@@ -2,6 +2,7 @@ package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class MineralsResult {
 
@@ -11,8 +12,8 @@ public class MineralsResult {
 
 
 
-    MineralsResult(ArrayList<Mineral> minerals){
-        this.minerals = minerals;
+    MineralsResult(List<Mineral> minerals){
+        this.minerals.addAll(minerals);
         position = evaluatePosition(this.minerals);
     }
 
@@ -21,15 +22,14 @@ public class MineralsResult {
     }
 
 
-    public static MineralPosition evaluatePosition(ArrayList<Mineral> minerals){
+    public static MineralPosition evaluatePosition(List<Mineral> minerals){
 
         Collections.sort(minerals, Mineral.MineralSort.WIDTH_SORT);
 
         ArrayList<Mineral> closestMinerals = new ArrayList<>(3);
 
-        for (int i = 0; i < 3; i++) {
-            closestMinerals.add(minerals.get(i));
-        }
+        closestMinerals.addAll(minerals.subList(0, 2));
+
 
         Collections.sort(minerals, Mineral.MineralSort.X_SORT);
         int goldCount = 0;

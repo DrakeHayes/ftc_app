@@ -9,6 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Detector;
 import org.opencv.android.OpenCVLoader;
@@ -53,7 +56,6 @@ public class HardwareBotman {
 
     public void init(HardwareMap ahwMap){
 
-
         period.reset();
         //Save reference to Hardware map
         hwMap = ahwMap;
@@ -79,7 +81,23 @@ public class HardwareBotman {
 
         //Define sensors
 
+        //Setup IMU
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
         time = (int)period.milliseconds();
+    }
+
+    public double heading(){
+        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return angles.firstAngle;
     }
 
 
@@ -93,6 +111,25 @@ public class HardwareBotman {
         leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void driveByGyro(double speed, double header){
+        if(speed > 0.9 || speed < -0.9) {
+            throw new IllegalArgumentException("Nah fam, keep it between -0.9 and 0.9" + speed);
+        }
+        if (heading() > header + 3) {
+            leftWheel.setPower(speed - 0.1);
+            rightWheel.setPower(speed + 0.1);
+        }
+        else if (heading() < header - 3) {
+            leftWheel.setPower(speed + 0.1);
+            rightWheel.setPower(speed - 0.1);
+        }
+        else{
+            leftWheel.setPower(speed);
+            rightWheel.setPower(speed);
+        }
+
     }
 
 

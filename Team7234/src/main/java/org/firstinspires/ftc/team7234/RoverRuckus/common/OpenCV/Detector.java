@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Detector {
 
@@ -133,7 +134,7 @@ public class Detector {
     }
 
 
-    public void findMinerals(ArrayList<Mineral> minerals){
+    public void findMinerals(List<Mineral> minerals){
 
         Mat testFrame = new Mat();
 
