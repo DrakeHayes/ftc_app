@@ -124,17 +124,29 @@ public class AutoBase extends OpMode {
                     }
 
                     robot.extension.setPower(0.0);
-                    state = CurrentState.STOP;
+
+                    state = CurrentState.FORWARD;
                 }
 
                 break;
-            case EVALUATE_MINERALS:
+            case FORWARD:         //Moves the robot forward to completely detach from the latch.  May need modification.
+                if (elapsedTime.milliseconds() >= 1000){
+                    elapsedTime.reset();
 
+                    robot.leftWheel.setPower(0.0);
+                    robot.rightWheel.setPower(0.0);
+                    state = CurrentState.STOP;
+                }
+                else {
+                    robot.leftWheel.setPower(.75);
+                    robot.rightWheel.setPower(.75);
+                }
+                break;
+            case EVALUATE_MINERALS:
                 break;
             case TURN_TO_MINERAL:
                 break;
-            case FORWARD:
-                break;
+
             case STOP:
                 break;
         }
