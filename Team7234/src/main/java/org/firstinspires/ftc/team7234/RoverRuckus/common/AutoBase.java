@@ -35,6 +35,8 @@ public class AutoBase extends OpMode {
     private ArrayList<Mineral> minerals = new ArrayList<>();
     private LinkedList<MineralPosition> positions = new LinkedList<>();
 
+
+
     private ScheduledExecutorService timer;
     private Runnable mineralSensor;
 
@@ -66,6 +68,9 @@ public class AutoBase extends OpMode {
     public void init() {
 
         robot.init(hardwareMap, true);
+        if (fieldPosition == FieldPosition.CRATER){
+            robot.detector.setMaskCrater(true);
+        }
 
     }
 
@@ -114,12 +119,17 @@ public class AutoBase extends OpMode {
             case LOWER:
                 if (elapsedTime.milliseconds() >= 13000){ //TODO: Change to encoder Counts
                     elapsedTime.reset();
+                    if (timer != null){
+                        timer.shutdownNow();
+                    }
+
                     robot.extension.setPower(0.0);
                     state = CurrentState.STOP;
                 }
 
                 break;
             case EVALUATE_MINERALS:
+
                 break;
             case TURN_TO_MINERAL:
                 break;
@@ -131,6 +141,8 @@ public class AutoBase extends OpMode {
 
 
     }
+
+
 
     @Override
     public void stop() {

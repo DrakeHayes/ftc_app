@@ -8,10 +8,15 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.firstinspires.ftc.team7234.R;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.File;
@@ -45,7 +50,11 @@ public class Detector {
 
     public boolean isFinished = false;
 
+    private boolean maskCrater;
+
     public Detector(){
+        maskCrater = false;
+
         context = FtcRobotControllerActivity.getActivityContext();
 
         frameGrabber = new FrameGrabber(FtcRobotControllerActivity.cameraBridgeViewBase, FRAME_WIDTH, FRAME_HEIGHT);
@@ -104,6 +113,7 @@ public class Detector {
         frame = frameGrabber.getFrame();
         findMinerals(minerals);
     }
+
     public void stop(){
         Log.i(TAG, "Stopping Detector");
         frameGrabber.stop();
@@ -113,19 +123,34 @@ public class Detector {
         return frame;
     }
 
+
+    public void setMaskCrater(boolean t){
+        maskCrater = t;
+    }
+
     public ArrayList<Mineral> getMinerals() { //By setting it up like this, we can avoid calling the resource-intensive detectMultiScale every time we need to check the minerals.
         return minerals;
     }
 
 
     public void findMinerals(ArrayList<Mineral> minerals){
+
+        Mat testFrame = new Mat();
+
+        if (maskCrater){
+            frame.copyTo(testFrame, craterMask(frame));
+        }
+        else {
+            frame.copyTo(testFrame);
+        }
+
         isFinished = false;
 
         if (!minerals.isEmpty()){
             minerals.clear();
         }
-        silverMineralClassifier.detectMultiScale(frame, silverMineralDetections);
-        goldMineralClassifier.detectMultiScale(frame, goldMineralDetections);
+        silverMineralClassifier.detectMultiScale(testFrame, silverMineralDetections);
+        goldMineralClassifier.detectMultiScale(testFrame, goldMineralDetections);
 
         for (Rect rect :
                 silverMineralDetections.toArray()) {
@@ -139,4 +164,38 @@ public class Detector {
         isFinished=true;
 
     }
+
+    private Mat craterMask(Mat frame){
+        ArrayList<Mat> channels = new ArrayList<>();
+
+
+        Mat hsv = new Mat(); //HSV version of the image
+        Mat mask = new Mat(frame.rows(), frame.cols(), CvType.CV_8U, Scalar.all(255)); //Mask to be applied, all vals are 0xFF or true
+
+        Mat vec = new Mat(); //1D projection of the Value, using averages
+
+
+        Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV); //Converts image into hsv
+
+        Core.split(hsv, channels);
+
+        Core.reduce(channels.get(2), vec, 1, Core.REDUCE_AVG);  //Use 1 for a single column, so averaging each row
+
+        Core.MinMaxLocResult result = Core.minMaxLoc(vec);
+
+        Point max = result.minLoc; //Position of the minimum value, should be where the crater wall is, assuming the camera is perp to ground
+
+        Imgproc.rectangle(mask, //Fills area above min value with 0x00 or false
+                new Point(0, 0),
+                new Point(frame.cols(), max.y),
+                new Scalar(0),
+                -1
+        );
+
+
+
+
+        return mask;
+    }
+
 }

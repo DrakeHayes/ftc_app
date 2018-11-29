@@ -79,6 +79,11 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
     Mat getFrame(){
         return frame;
     }
+    Mat getHsvFrame(){
+        Mat hsv = new Mat();
+        Imgproc.cvtColor(getFrame(), hsv, Imgproc.COLOR_BGR2HSV);
+        return hsv;
+    }
 
     private void processFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
 
