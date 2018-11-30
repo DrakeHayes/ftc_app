@@ -38,6 +38,7 @@ public class AutoBase extends OpMode {
 
     private MineralPosition finalPos;
 
+    private final double EXTENSION_TARGET = -38245;
     private final double LEFT_MINERAL_THETA = -15;
     private final double RIGHT_MINERAL_THETA = 15;
 
@@ -120,13 +121,14 @@ public class AutoBase extends OpMode {
         switch (state){
             case PREP:
                 elapsedTime.reset();
-                robot.extension.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                robot.extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 robot.extension.setPower(1.0);
                 state = CurrentState.LOWER;
                 break;
             case LOWER:
-                if (elapsedTime.milliseconds() >= 13000){ //TODO: Change to encoder Counts
+                if (robot.extension.getCurrentPosition() < EXTENSION_TARGET){ //TODO: Change to encoder Counts
                     elapsedTime.reset();
+
                     if (timer != null){
                         timer.shutdownNow();
                     }
@@ -143,7 +145,7 @@ public class AutoBase extends OpMode {
 
                     robot.leftWheel.setPower(0.0);
                     robot.rightWheel.setPower(0.0);
-                    state = CurrentState.STOP;
+                    state = CurrentState.EVALUATE_MINERALS;
                 }
                 else {
                     robot.leftWheel.setPower(.75);
@@ -151,93 +153,99 @@ public class AutoBase extends OpMode {
                 }
                 break;
             case EVALUATE_MINERALS:
+                try {
+                    ArrayList<Mineral> goldReadings = new ArrayList<>();
+                    ArrayList<Mineral> silverReadings = new ArrayList<>();
 
-                ArrayList<Mineral> goldReadings = new ArrayList<>();
-                ArrayList<Mineral> silverReadings = new ArrayList<>();
-
-                for (Mineral m :
-                        allMinerals) {
-                    if (m instanceof GoldMineral) {
-                        goldReadings.add(m);
-                    }
-                    else if (m instanceof SilverMineral){
-                        silverReadings.add(m);
-                    }
-                }
-
-                ArrayList<Integer> goldPositions = new ArrayList<>();
-                ArrayList<Integer> silverPositions = new ArrayList<>();
-
-                for (Mineral g :
-                        goldReadings) {
-                    goldPositions.add(g.getX());
-                }
-                for (Mineral s :
-                        silverReadings) {
-                    silverPositions.add(s.getX());
-                }
-
-                //region Averaging
-                OptionalDouble avgGold = goldPositions.stream().mapToDouble(a -> a).average();
-                OptionalDouble avgSilver = silverPositions.stream().mapToDouble(a -> a).average();
-
-                ArrayList<Integer> leftSilverPositions = new ArrayList<>();
-                ArrayList<Integer> rightSilverPositions = new ArrayList<>();
-
-                if (avgSilver.isPresent()){
-                    for (Integer i :
-                            silverPositions) {
-                        if (i < avgSilver.getAsDouble()) {
-                            leftSilverPositions.add(i);
+                    for (Mineral m :
+                            allMinerals) {
+                        if (m instanceof GoldMineral) {
+                            goldReadings.add(m);
                         }
-                        else {
-                            rightSilverPositions.add(i);
+                        else if (m instanceof SilverMineral){
+                            silverReadings.add(m);
                         }
                     }
+
+                    ArrayList<Integer> goldPositions = new ArrayList<>();
+                    ArrayList<Integer> silverPositions = new ArrayList<>();
+
+                    for (Mineral g :
+                            goldReadings) {
+                        goldPositions.add(g.getX());
+                    }
+                    for (Mineral s :
+                            silverReadings) {
+                        silverPositions.add(s.getX());
+                    }
+
+                    //region Averaging
+                    OptionalDouble avgGold = goldPositions.stream().mapToDouble(a -> a).average();
+                    OptionalDouble avgSilver = silverPositions.stream().mapToDouble(a -> a).average();
+
+                    ArrayList<Integer> leftSilverPositions = new ArrayList<>();
+                    ArrayList<Integer> rightSilverPositions = new ArrayList<>();
+
+                    if (avgSilver.isPresent()){
+                        for (Integer i :
+                                silverPositions) {
+                            if (i < avgSilver.getAsDouble()) {
+                                leftSilverPositions.add(i);
+                            }
+                            else {
+                                rightSilverPositions.add(i);
+                            }
+                        }
+                    }
+                    else {
+                        finalPos = MineralPosition.CENTER;
+                    }
+
+
+                    OptionalDouble leftSilver = leftSilverPositions.stream().mapToDouble(a -> a).average();
+
+                    OptionalDouble rightSilver = rightSilverPositions.stream().mapToDouble(a -> a).average();
+
+                    //endregion
+
+                    if (avgGold.isPresent() && leftSilver.isPresent() && rightSilver.isPresent()){
+                        if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
+                            finalPos = MineralPosition.LEFT;
+                        }
+                        else if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
+                            finalPos = MineralPosition.RIGHT;
+                        }
+                        else{
+                            finalPos = MineralPosition.CENTER;
+                        }
+                    }
+                    else if (avgGold.isPresent() && leftSilver.isPresent()){
+                        if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
+                            finalPos = MineralPosition.LEFT;
+                        }
+                        else{
+                            finalPos = MineralPosition.CENTER;
+                        }
+                    }
+                    else if (avgGold.isPresent() && rightSilver.isPresent()){
+                        if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
+                            finalPos = MineralPosition.RIGHT;
+                        }
+                        else{
+                            finalPos = MineralPosition.CENTER;
+                        }
+                    }
+                    else {
+                        finalPos = MineralPosition.CENTER;
+                    }
                 }
-                else {
+                catch (Exception ex){
                     finalPos = MineralPosition.CENTER;
                 }
-
-
-                OptionalDouble leftSilver = leftSilverPositions.stream().mapToDouble(a -> a).average();
-
-                OptionalDouble rightSilver = rightSilverPositions.stream().mapToDouble(a -> a).average();
-
-                //endregion
-
-                if (avgGold.isPresent() && leftSilver.isPresent() && rightSilver.isPresent()){
-                    if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
-                        finalPos = MineralPosition.LEFT;
-                    }
-                    else if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
-                        finalPos = MineralPosition.RIGHT;
-                    }
-                    else{
-                        finalPos = MineralPosition.CENTER;
-                    }
-                }
-                else if (avgGold.isPresent() && leftSilver.isPresent()){
-                    if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
-                        finalPos = MineralPosition.LEFT;
-                    }
-                    else{
-                        finalPos = MineralPosition.CENTER;
-                    }
-                }
-                else if (avgGold.isPresent() && rightSilver.isPresent()){
-                    if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
-                        finalPos = MineralPosition.RIGHT;
-                    }
-                    else{
-                        finalPos = MineralPosition.CENTER;
-                    }
-                }
-                else {
-                    finalPos = MineralPosition.CENTER;
+                finally {
+                    state = CurrentState.TURN_TO_MINERAL;
                 }
 
-                state = CurrentState.TURN_TO_MINERAL;
                 break;
             case TURN_TO_MINERAL:
                 switch (finalPos){
