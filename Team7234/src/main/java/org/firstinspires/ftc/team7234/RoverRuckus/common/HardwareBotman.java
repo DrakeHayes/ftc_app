@@ -67,8 +67,8 @@ public class HardwareBotman {
         extension = hwMap.get(DcMotor.class, "latch");
 
 
-        leftWheel.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightWheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftWheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightWheel.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //Set all motors to zero power
         leftWheel.setPower(0.);
@@ -96,8 +96,20 @@ public class HardwareBotman {
     }
 
     public double heading(){
-        angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        return angles.firstAngle;
+        updateAngles();
+        return angles.thirdAngle; //Rotation about Y axis, out from short side of hub
+    }
+    public double roll(){
+        updateAngles();
+        return angles.firstAngle; //Rotation about Z axis, out from top of hub
+    }
+    public double pitch(){
+        updateAngles();
+        return angles.secondAngle;
+    }
+
+    private void updateAngles(){
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZXY, AngleUnit.DEGREES);
     }
 
 

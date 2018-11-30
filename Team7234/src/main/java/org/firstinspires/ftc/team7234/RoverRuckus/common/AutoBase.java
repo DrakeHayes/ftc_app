@@ -36,7 +36,7 @@ public class AutoBase extends OpMode {
     private ArrayList<Mineral> allMinerals = new ArrayList<>();
     private LinkedList<MineralPosition> positions = new LinkedList<>();
 
-    private MineralPosition finalPos;
+    private MineralPosition finalPos = null;
 
     private final double EXTENSION_TARGET = -38245;
     private final double LEFT_MINERAL_THETA = -15;
@@ -91,11 +91,11 @@ public class AutoBase extends OpMode {
                     try {
                         robot.detector.update();
 
-
                         List<Mineral> minerals = robot.detector.getMinerals();
                         allMinerals.addAll(minerals);
 
                         positions.add(MineralsResult.evaluatePosition(minerals));
+
 
                     }
                     catch (Exception ex){
@@ -118,6 +118,10 @@ public class AutoBase extends OpMode {
     @Override
     public void loop() {
 
+        telemetry.addData("Program State: ", state);
+        telemetry.addData("Expected Mineral Position: ", finalPos);
+        telemetry.addData("Robot Heading: ", robot.heading());
+
         switch (state){
             case PREP:
                 elapsedTime.reset();
@@ -130,6 +134,7 @@ public class AutoBase extends OpMode {
                     elapsedTime.reset();
 
                     if (timer != null){
+
                         timer.shutdownNow();
                     }
 
