@@ -250,6 +250,7 @@ public class AutoBase extends OpMode {
             case TURN_TO_MINERAL:
                 switch (finalPos){
                     case CENTER:
+                        elapsedTime.reset();
                         state = CurrentState.REMOVE_MINERAL;
                         break;
                     case LEFT:
@@ -257,6 +258,7 @@ public class AutoBase extends OpMode {
                         robot.rightWheel.setPower(0.5);
                         Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
                         if (robot.heading() < LEFT_MINERAL_THETA){
+                            elapsedTime.reset();
                             state = CurrentState.REMOVE_MINERAL;
                         }
                         break;
@@ -265,14 +267,29 @@ public class AutoBase extends OpMode {
                         robot.rightWheel.setPower(-0.5);
                         Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
                         if (robot.heading() < RIGHT_MINERAL_THETA){
+                            elapsedTime.reset();
                             state = CurrentState.REMOVE_MINERAL;
                         }
+                        break;
+                    default:
+                        elapsedTime.reset();
+                        state = CurrentState.REMOVE_MINERAL;
                         break;
                 }
                 break;
 
             case REMOVE_MINERAL:
+                if (elapsedTime.milliseconds() >= 2000){
+                    robot.rightWheel.setPower(0.0);
+                    robot.leftWheel.setPower(0.0);
+                    state = CurrentState.STOP;
+                }
+                else {
+                    robot.rightWheel.setPower(1.0);
+                    robot.leftWheel.setPower(1.0);
+                }
                 break;
+
             case STOP:
                 robot.leftWheel.setPower(0.0);
                 robot.rightWheel.setPower(0.0);
