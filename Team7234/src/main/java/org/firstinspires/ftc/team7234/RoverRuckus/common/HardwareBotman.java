@@ -130,12 +130,12 @@ public class HardwareBotman {
             throw new IllegalArgumentException("Nah fam, keep it between -0.9 and 0.9" + speed);
         }
         if (heading() > header + 3) {
-            leftWheel.setPower(speed - 0.1);
-            rightWheel.setPower(speed + 0.1);
-        }
-        else if (heading() < header - 3) {
             leftWheel.setPower(speed + 0.1);
             rightWheel.setPower(speed - 0.1);
+        }
+        else if (heading() < header - 3) {
+            leftWheel.setPower(speed - 0.1);
+            rightWheel.setPower(speed + 0.1);
         }
         else{
             leftWheel.setPower(speed);

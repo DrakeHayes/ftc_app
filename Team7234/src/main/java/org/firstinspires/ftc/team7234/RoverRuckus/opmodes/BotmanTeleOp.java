@@ -42,8 +42,8 @@ public class BotmanTeleOp extends OpMode {
     @Override
     public void loop() {
 
-        rightSpeed = gamepad1.right_stick_y;
-        leftSpeed = gamepad1.left_stick_y;
+        rightSpeed = -gamepad1.right_stick_y;
+        leftSpeed = -gamepad1.left_stick_y;
         extendSpeed = gamepad1.left_trigger - gamepad1.right_trigger;
 
         robot.rightWheel.setPower(rightSpeed);
