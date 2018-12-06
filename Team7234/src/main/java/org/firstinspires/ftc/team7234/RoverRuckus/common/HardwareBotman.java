@@ -115,16 +115,24 @@ public class HardwareBotman {
 
 
     public void resetEncoders(){
-
+        //Stop the motors and reset the encoders
         leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        /*
+        The left and right wheels are not hooked up to encoders so we cannot use them to drive
+        these motors.  We do have one hooked up to the linear actuator.  So, we can use one to
+        drive it
+         */
         leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
-
+    /*
+    This block of code helps the robot follow a straight path while using the gyro.  If the robot
+    rotates too far one way, then it will correct itself and continue following this path.
+     */
     public void driveByGyro(double speed, double header){
         if(speed > 0.9 || speed < -0.9) {
             throw new IllegalArgumentException("Nah fam, keep it between -0.9 and 0.9" + speed);
