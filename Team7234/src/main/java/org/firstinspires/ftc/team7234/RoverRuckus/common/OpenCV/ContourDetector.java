@@ -15,7 +15,11 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ContourDetector implements MineralDetector {
 
@@ -122,21 +126,45 @@ public class ContourDetector implements MineralDetector {
 
 
         //TODO: Modify this to filter out small contours
-        for (MatOfPoint cont :
-                ballContours) {
-            Rect r = Imgproc.boundingRect(cont);
+
+        Optional<MatOfPoint> goldMineralLoc = blockContours //Find largest block
+                .stream()
+                .max(Comparator.comparing(Imgproc::contourArea));
+
+        if (goldMineralLoc.isPresent()){
+            Rect r = Imgproc.boundingRect(goldMineralLoc.get());
+            out.add(new GoldMineral(r.x, r.y, r.width, r.height));
+        }
+
+
+        List<MatOfPoint> sortedSilver = ballContours //Sorts the silver minerals by size
+                .stream()
+                .sorted(Comparator.comparing(Imgproc::contourArea))
+                .collect(Collectors.toList());
+
+        if (sortedSilver.size() ==1){
+            Rect r = Imgproc.boundingRect(sortedSilver.get(0));
             out.add(new SilverMineral(r.x, r.y, r.width, r.height));
         }
-        for (MatOfPoint cont :
-                blockContours) {
-            Rect r = Imgproc.boundingRect(cont);
-            out.add(new GoldMineral(r.x,r.y,r.width, r.height));
+        else if (sortedSilver.size() > 2){
+            for (int i = 0; i < 2; i++) {
+                Rect r = Imgproc.boundingRect(sortedSilver.get(i));
+                out.add(new SilverMineral(r.x, r.y, r.width, r.height));
+            }
         }
+
+        minerals.addAll(out); //Adds minerals found to original list
+
+        Log.i(TAG, "Detection complete, "
+                + ((goldMineralLoc.isPresent()) ? "Found Gold Mineral" : "Did not find gold mineral")
+                + ", and did find"
+                + ((sortedSilver.size() > 2) ? "2 Silver Minerals." : sortedSilver.size() + " Silver minerals.")
+        );
     }
 
     @Override
     public void stop(){
-        Log.i(TAG, "Stopping CascadeDetector");
+        Log.i(TAG, "Stopping Contour Detector");
         frameGrabber.stop();
     }
 
