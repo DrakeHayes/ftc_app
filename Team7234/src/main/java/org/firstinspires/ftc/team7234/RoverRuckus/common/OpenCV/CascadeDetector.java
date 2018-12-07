@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Detector {
+public class CascadeDetector implements MineralDetector{
 
     private File BALLS_CLASSIFIER;
     private File BLOCKS_CLASSIFIER;
@@ -53,7 +53,7 @@ public class Detector {
 
     private boolean maskCrater;
 
-    public Detector(){
+    public CascadeDetector(){
         maskCrater = false;
 
         context = FtcRobotControllerActivity.getActivityContext();
@@ -116,7 +116,7 @@ public class Detector {
     }
 
     public void stop(){
-        Log.i(TAG, "Stopping Detector");
+        Log.i(TAG, "Stopping CascadeDetector");
         frameGrabber.stop();
     }
 

@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.team7234.RoverRuckus.common;
 
-import android.graphics.Camera;
-import android.util.Log;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,8 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Detector;
-import org.opencv.android.OpenCVLoader;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.CascadeDetector;
 
 public class HardwareBotman {
 
@@ -35,7 +31,7 @@ public class HardwareBotman {
     BNO055IMU imu;
     Orientation angles;
 
-    Detector detector;
+    CascadeDetector detector;
 
     //endregion
 
@@ -49,7 +45,7 @@ public class HardwareBotman {
 
     public void init(HardwareMap ahwMap, boolean useCamera){
         if (useCamera){
-            detector = new Detector();
+            detector = new CascadeDetector();
         }
         init(ahwMap);
     }

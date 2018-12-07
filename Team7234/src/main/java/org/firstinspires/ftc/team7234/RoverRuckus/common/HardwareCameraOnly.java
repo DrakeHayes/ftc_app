@@ -3,8 +3,7 @@ package org.firstinspires.ftc.team7234.RoverRuckus.common;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Detector;
-import org.opencv.core.Mat;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.CascadeDetector;
 
 /**
  * Empty Hardware Class for camera testing without an attached robot.
@@ -15,7 +14,7 @@ public class HardwareCameraOnly {
 
     }
 
-    public Detector detector;
+    public CascadeDetector detector;
 
     private HardwareMap hwMap = null;
 
@@ -24,7 +23,7 @@ public class HardwareCameraOnly {
 
     public void init(HardwareMap ahwMap){
         hwMap = ahwMap;
-        detector = new Detector();
+        detector = new CascadeDetector();
     }
 
 
