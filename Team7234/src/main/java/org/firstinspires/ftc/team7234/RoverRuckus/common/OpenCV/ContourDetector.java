@@ -40,7 +40,7 @@ public class ContourDetector implements MineralDetector {
 
     private boolean maskCrater;
 
-    ContourDetector(){
+    public ContourDetector(){
         maskCrater = false;
 
         context = FtcRobotControllerActivity.getActivityContext();

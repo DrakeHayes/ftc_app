@@ -11,6 +11,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.CascadeDetector;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.ContourDetector;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralDetector;
 
 public class HardwareBotman {
 
@@ -31,7 +34,7 @@ public class HardwareBotman {
     BNO055IMU imu;
     Orientation angles;
 
-    CascadeDetector detector;
+    MineralDetector detector;
 
     //endregion
 
@@ -45,7 +48,7 @@ public class HardwareBotman {
 
     public void init(HardwareMap ahwMap, boolean useCamera){
         if (useCamera){
-            detector = new CascadeDetector();
+            detector = new ContourDetector();
         }
         init(ahwMap);
     }
