@@ -13,6 +13,7 @@ import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.SilverMineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.AllianceColor;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
@@ -37,8 +38,8 @@ public class AutoBase extends OpMode {
     private MineralPosition finalPos = null;
 
     private final double EXTENSION_TARGET = -38245;
-    private final double LEFT_MINERAL_THETA = -15;
-    private final double RIGHT_MINERAL_THETA = 15;
+    private final double LEFT_MINERAL_THETA = -30;
+    private final double RIGHT_MINERAL_THETA = 30;
 
     private final double DEPOT_THETA = -135; //Rotation target for going from
 
@@ -158,6 +159,7 @@ public class AutoBase extends OpMode {
 
                     robot.leftWheel.setPower(0.0);
                     robot.rightWheel.setPower(0.0);
+                    Log.i(TAG, "Forward State completed, evaluating minerals");
                     state = CurrentState.EVALUATE_MINERALS;
                 }
                 else {
@@ -219,6 +221,9 @@ public class AutoBase extends OpMode {
                         else{
                             finalPos = MineralPosition.CENTER;
                         }
+                        Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                        Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                        Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
                     }
                     else if (avgGold.isPresent() && leftSilver.isPresent()){
                         if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
@@ -227,6 +232,8 @@ public class AutoBase extends OpMode {
                         else{
                             finalPos = MineralPosition.CENTER;
                         }
+                        Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                        Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
                     }
                     else if (avgGold.isPresent() && rightSilver.isPresent()){
                         if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
@@ -235,6 +242,8 @@ public class AutoBase extends OpMode {
                         else{
                             finalPos = MineralPosition.CENTER;
                         }
+                        Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                        Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
                     }
                     else {
                         finalPos = MineralPosition.CENTER;
@@ -242,46 +251,59 @@ public class AutoBase extends OpMode {
                     //endregion
                 }
                 catch (Exception ex){
+                    Log.w(TAG, "Exception " + ex + " Encountered in Locating Mineral, defaulting to center.");
                     finalPos = MineralPosition.CENTER;
                 }
                 finally {
+                    elapsedTime.reset();
+                    Log.i(TAG, "Minerals evaluated, mineral is in the " + finalPos.toString() + " Position.");
                     state = CurrentState.TURN_TO_MINERAL;
                 }
 
                 break;
+
             case TURN_TO_MINERAL:
-                switch (finalPos){
-                    case CENTER:
-                        elapsedTime.reset();
-                        state = CurrentState.REMOVE_MINERAL;
-                        break;
-                    case LEFT:
-                        robot.leftWheel.setPower(-0.5);
-                        robot.rightWheel.setPower(0.5);
-                        Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
-                        if (robot.heading() < LEFT_MINERAL_THETA){
+                if (elapsedTime.milliseconds() < 3000) { //Stops if turning goes over 2 seconds
+                    switch (finalPos) {
+                        case CENTER:
                             elapsedTime.reset();
                             state = CurrentState.REMOVE_MINERAL;
-                        }
-                        break;
-                    case RIGHT:
-                        robot.leftWheel.setPower(0.5);
-                        robot.rightWheel.setPower(-0.5);
-                        Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
-                        if (robot.heading() < RIGHT_MINERAL_THETA){
+                            break;
+                        case LEFT:
+                            robot.leftWheel.setPower(-0.5);
+                            robot.rightWheel.setPower(0.5);
+                            Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
+                            if (robot.heading() < LEFT_MINERAL_THETA || robot.heading() > LEFT_MINERAL_THETA + 360) {
+                                Log.i(TAG, "Left Turn completed, removing mineral");
+                                elapsedTime.reset();
+                                state = CurrentState.REMOVE_MINERAL;
+                            }
+                            break;
+                        case RIGHT:
+                            robot.leftWheel.setPower(0.5);
+                            robot.rightWheel.setPower(-0.5);
+                            Log.v(TAG, "Now turning to right mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
+                            if (robot.heading() < RIGHT_MINERAL_THETA || robot.heading() < RIGHT_MINERAL_THETA-360) {
+                                Log.i(TAG, "Right Turn completed, removing mineral");
+                                elapsedTime.reset();
+                                state = CurrentState.REMOVE_MINERAL;
+                            }
+                            break;
+                        default:
+                            Log.i(TAG, "No turn necessary, removing mineral");
                             elapsedTime.reset();
                             state = CurrentState.REMOVE_MINERAL;
-                        }
-                        break;
-                    default:
-                        elapsedTime.reset();
-                        state = CurrentState.REMOVE_MINERAL;
-                        break;
+                            break;
+                    }
+                }
+                else {
+                    state = CurrentState.REMOVE_MINERAL;
                 }
                 break;
 
             case REMOVE_MINERAL:
                 if (elapsedTime.milliseconds() >= 2000){
+                    Log.i(TAG, "Mineral removed");
                     robot.rightWheel.setPower(0.0);
                     robot.leftWheel.setPower(0.0);
                     switch (fieldPosition){
@@ -345,6 +367,7 @@ public class AutoBase extends OpMode {
 
     @Override
     public void stop() {
+
         if (this.timer != null){
 
             Log.i(TAG, "Stopping timer");

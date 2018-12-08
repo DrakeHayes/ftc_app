@@ -23,15 +23,16 @@ public class BotmanTeleOp extends OpMode {
 
     double extendSpeed;
 
+    boolean collectorToggle;
+
     @Override
     public void init() {
             /* This line of code tells that robot to ignore the camera.  We do not want to
-            use the camera as of now because we are currently running into problems.  The phone
-            is not mounted in an ideal place for element detection.*/
+            use the camera in teleop, so as to save CPU cycles and make the code run faster..*/
         try {
             robot.init(hardwareMap, false);
         }
-        catch (IllegalArgumentException ex){
+        catch (Exception ex){
             Log.e(logTag, ex.toString());
         }
 
@@ -39,15 +40,22 @@ public class BotmanTeleOp extends OpMode {
 
         robot.resetEncoders();
         robot.extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        collectorToggle = false;
 
+    }
+
+    @Override
+    public void start() {
+        robot.leftWheel.setDirection(DcMotor.Direction.REVERSE);
+        robot.rightWheel.setDirection(DcMotor.Direction.FORWARD);
     }
 
     @Override
     public void loop() {
        /*  This line of code determines which joysticks control which motors.  Earlier our
         driver was having trouble controlling the robot.  So, we inverted the controls.  */
-        rightSpeed = -gamepad1.right_stick_y;
-        leftSpeed = -gamepad1.left_stick_y;
+        rightSpeed = gamepad1.right_stick_y;
+        leftSpeed = gamepad1.left_stick_y;
         extendSpeed = gamepad1.left_trigger - gamepad1.right_trigger;
 
         //Set the power of the motors to previously defined speeds
@@ -55,8 +63,32 @@ public class BotmanTeleOp extends OpMode {
         robot.leftWheel.setPower(leftSpeed);
         robot.extension.setPower(extendSpeed);
 
+        if (collectorToggle){
+            if (gamepad2.a){
+                collectorToggle = false;
+                robot.rightSpinner.setPower(1.0);
+                robot.leftSpinner.setPower(-1.0);
+            }
+            else if (gamepad2.b){
+                collectorToggle = false;
+                robot.rightSpinner.setPower(-1.0);
+                robot.leftSpinner.setPower(1.0);
+            }
+            else if (gamepad2.x){
+                collectorToggle = false;
+                robot.rightSpinner.setPower(0.0);
+                robot.leftSpinner.setPower(0.0);
+            }
+        }
+        else if (!(gamepad2.a || gamepad2.b || gamepad2.x)){
+            collectorToggle = true;
+        }
+
         //Get the current position of the motor
         telemetry.addData("Extension Position", robot.extension.getCurrentPosition());
+        telemetry.addData("Robot Heading: ", robot.heading());
+        telemetry.addData("Robot Pitch", robot.pitch());
+        telemetry.addData("Robot Roll", robot.roll());
 
 
 
@@ -69,6 +101,8 @@ public class BotmanTeleOp extends OpMode {
         robot.rightWheel.setPower(0.0);
         robot.leftWheel.setPower(0.0);
         robot.extension.setPower(0.0);
+        robot.leftSpinner.setPower(0.0);
+        robot.rightSpinner.setPower(0.0);
     }
 
 }

@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.team7234.RoverRuckus.common;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -23,6 +25,9 @@ public class HardwareBotman {
     public DcMotor rightWheel;
     public DcMotor leftWheel;
     public DcMotor extension;
+
+    public CRServo leftSpinner;
+    public CRServo rightSpinner;
 
     //DcMotor armExtension;
 
@@ -65,9 +70,11 @@ public class HardwareBotman {
 
         extension = hwMap.get(DcMotor.class, "latch");
 
+        leftSpinner = hwMap.get(CRServo.class, "left_spinner");
+        rightSpinner = hwMap.get(CRServo.class, "right_spinner");
 
-        leftWheel.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightWheel.setDirection(DcMotorSimple.Direction.FORWARD);
+        leftWheel.setDirection(DcMotor.Direction.REVERSE);
+        rightWheel.setDirection(DcMotor.Direction.FORWARD);
 
         //Set all motors to zero power
         leftWheel.setPower(0.);
@@ -134,7 +141,7 @@ public class HardwareBotman {
      */
     public void driveByGyro(double speed, double header){
         if(speed > 0.9 || speed < -0.9) {
-            throw new IllegalArgumentException("Nah fam, keep it between -0.9 and 0.9" + speed);
+            throw new IllegalArgumentException("Speed must be between 0.9 and -0.9" + speed);
         }
         if (heading() > header + 3) {
             leftWheel.setPower(speed + 0.1);
