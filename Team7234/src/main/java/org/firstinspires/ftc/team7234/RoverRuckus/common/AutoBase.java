@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.GoldMineral;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralPosition;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.SilverMineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.AllianceColor;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
+import org.firstinspires.ftc.team7234.RoverRuckus.opmodes.Autonomous.RedDepot;
 
 import java.lang.annotation.Target;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ public class AutoBase extends OpMode {
 
     private final AllianceColor allianceColor;
     private final FieldPosition fieldPosition;
-    private final String TAG = "Autonomous";
+    private final String TAG = "BotmanAutonomous";
 
     private static final int sampleRate = 4; //How many samples to take, per second.
     private static final int timeDelay = 1000/sampleRate; //Delay between samples in milliseconds
@@ -51,12 +53,18 @@ public class AutoBase extends OpMode {
     private int samplesTaken = 0;
 
     ElapsedTime elapsedTime = new ElapsedTime();
+    boolean stopAtDescent;
 
 
+    public AutoBase(AllianceColor allianceColor, FieldPosition fieldPosition, boolean stopAtDescent){
+        this(allianceColor, fieldPosition);
+        this.stopAtDescent = stopAtDescent;
+    }
 
     public AutoBase(AllianceColor allianceColor, FieldPosition fieldPosition){
         this.allianceColor = allianceColor;
         this.fieldPosition = fieldPosition;
+        this.stopAtDescent = false;
     }
 
 
@@ -74,6 +82,8 @@ public class AutoBase extends OpMode {
 
         DEPOT_TURN_TO_DEPOT,
         DEPOT_GO_TO_DEPOT,
+
+        RECENTER_TO_CORNER,
 
         DEPOSIT_OBJECT,
         STOP
@@ -118,6 +128,9 @@ public class AutoBase extends OpMode {
         catch (Exception ex){
             Log.e(TAG, ex.getMessage());
         }
+
+        robot.leftWheel.setDirection(DcMotor.Direction.FORWARD);
+        robot.rightWheel.setDirection(DcMotor.Direction.REVERSE);
         ///robot.extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //robot.rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -127,6 +140,7 @@ public class AutoBase extends OpMode {
     public void loop() {
 
         telemetry.addData("Program State: ", state);
+        telemetry.addData("Extension Position", robot.extension.getCurrentPosition());
         telemetry.addData("Expected Mineral Position: ", finalPos);
         telemetry.addData("Samples Taken: ", samplesTaken);
         telemetry.addData("Robot Heading: ", robot.heading());
@@ -143,14 +157,14 @@ public class AutoBase extends OpMode {
                     elapsedTime.reset();
 
                     if (timer != null){
-
                         timer.shutdownNow();
                     }
-
+                    Log.i(TAG, "Finished lowering");
                     robot.extension.setPower(0.0);
 
                     state = CurrentState.FORWARD;
                 }
+                Log.v(TAG, "Descending to " + EXTENSION_TARGET +", Current position is " + robot.extension.getCurrentPosition());
 
                 break;
             case FORWARD:         //Moves the robot forward to completely detach from the latch.  May need modification.
@@ -160,9 +174,15 @@ public class AutoBase extends OpMode {
                     robot.leftWheel.setPower(0.0);
                     robot.rightWheel.setPower(0.0);
                     Log.i(TAG, "Forward State completed, evaluating minerals");
-                    state = CurrentState.EVALUATE_MINERALS;
+                    if (stopAtDescent){
+                        state = CurrentState.STOP;
+                    }
+                    else {
+                        state = CurrentState.EVALUATE_MINERALS;
+                    }
                 }
                 else {
+                    Log.v(TAG, "Moving forward to target position");
                     robot.leftWheel.setPower(.75);
                     robot.rightWheel.setPower(.75);
                 }
@@ -184,8 +204,8 @@ public class AutoBase extends OpMode {
 
 
                     //region Averaging
-                    OptionalDouble avgGold = goldReadings.stream().mapToDouble(Mineral::getX).average();
-                    OptionalDouble avgSilver = silverReadings.stream().mapToDouble(Mineral::getX).average();
+                    OptionalDouble avgGold = goldReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
+                    OptionalDouble avgSilver = silverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
 
                     ArrayList<Mineral> leftSilverReadings = new ArrayList<>();
                     ArrayList<Mineral> rightSilverReadings = new ArrayList<>();
@@ -206,8 +226,8 @@ public class AutoBase extends OpMode {
                     }
 
 
-                    OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(Mineral::getX).average();
-                    OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(Mineral::getX).average();
+                    OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
+                    OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
 
                     //endregion
                     //region Set Positions
@@ -321,6 +341,33 @@ public class AutoBase extends OpMode {
                 }
                 break;
 
+            case RECENTER_TO_CORNER:
+                switch (finalPos){
+                    case CENTER:
+                        state = CurrentState.DEPOSIT_OBJECT;
+                        break;
+                    case LEFT:
+                        robot.leftWheel.setPower(0.5);
+                        robot.rightWheel.setPower(-0.5);
+                        if (robot.heading() > -LEFT_MINERAL_THETA || robot.heading() < -LEFT_MINERAL_THETA - 360 ){
+                            robot.leftWheel.setPower(0.0);
+                            robot.rightWheel.setPower(0.0);
+                            state = CurrentState.DEPOSIT_OBJECT;
+                        }
+                        break;
+                    case RIGHT:
+                        robot.leftWheel.setPower(-0.5);
+                        robot.rightWheel.setPower(0.5);
+                        if (robot.heading() < -RIGHT_MINERAL_THETA || robot.heading() > -RIGHT_MINERAL_THETA + 360){
+                            robot.leftWheel.setPower(0.0);
+                            robot.rightWheel.setPower(0.0);
+                            state = CurrentState.DEPOSIT_OBJECT;
+                        }
+                        break;
+                }
+                break;
+
+
             case DEPOT_TURN_TO_DEPOT:
                 switch (finalPos){
                     case CENTER:
@@ -332,6 +379,7 @@ public class AutoBase extends OpMode {
                 }
                 state = CurrentState.STOP;
                 break;
+
             case DEPOT_GO_TO_DEPOT:
                 state = CurrentState.STOP;
                 break;

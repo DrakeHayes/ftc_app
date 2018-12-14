@@ -17,7 +17,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
 
     private Mat frame, tmp1, tmp2;
-    CameraBridgeViewBase cameraBase;
+    private CameraBridgeViewBase cameraBase;
 
     private final String TAG = "FrameGrabber";
 
@@ -34,6 +34,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
                     cameraBridgeViewBase.setMinimumHeight(frameHeightRequest);
                     cameraBridgeViewBase.setMaxFrameSize(frameWidthRequest, frameHeightRequest);
                     cameraBridgeViewBase.setCvCameraViewListener(FrameGrabber.this);
+                    //cameraBridgeViewBase.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
                     cameraBridgeViewBase.enableView();
                 }
             });
@@ -58,7 +59,6 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
             public void run() {
                 cameraBase.disableView();
                 cameraBase.setVisibility(SurfaceView.INVISIBLE);
-
             }
         });
 

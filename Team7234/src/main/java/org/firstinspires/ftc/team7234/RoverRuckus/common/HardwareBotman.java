@@ -26,14 +26,9 @@ public class HardwareBotman {
     public DcMotor leftWheel;
     public DcMotor extension;
 
-    public CRServo leftSpinner;
-    public CRServo rightSpinner;
-
-    //DcMotor armExtension;
-
-    //DcMotor collector;
-
-    //DcMotor latchExtender;
+    public DcMotor collectorSpinner;
+    public DcMotor armLift;
+    public DcMotor armTwist;
 
 
     BNO055IMU imu;
@@ -70,8 +65,10 @@ public class HardwareBotman {
 
         extension = hwMap.get(DcMotor.class, "latch");
 
-        leftSpinner = hwMap.get(CRServo.class, "left_spinner");
-        rightSpinner = hwMap.get(CRServo.class, "right_spinner");
+        collectorSpinner = hwMap.get(DcMotor.class, "collector");
+        armLift = hwMap.get(DcMotor.class, "arm_lift");
+        armTwist = hwMap.get(DcMotor.class, "arm_twist");
+
 
         leftWheel.setDirection(DcMotor.Direction.REVERSE);
         rightWheel.setDirection(DcMotor.Direction.FORWARD);
@@ -79,6 +76,9 @@ public class HardwareBotman {
         //Set all motors to zero power
         leftWheel.setPower(0.);
         rightWheel.setPower(0.);
+
+        //Set ZeroPowerBehaviors
+
 
 
         //resets encoders
