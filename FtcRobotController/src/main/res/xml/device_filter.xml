@@ -47,4 +47,7 @@ https://developer.android.com/guide/topics/connectivity/usb/host
         in our activity when cameras attach. See FtcRobotControllerActivity. -->
    <usb-device class="14" subclass="2"/>
 
+
+   <usb-device vendor-id="1133" product-id="2085" /> <!-- Logitech C270 Webcam: 0x046d/0x0825 -->
+
 </resources>

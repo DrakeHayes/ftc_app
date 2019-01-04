@@ -158,8 +158,6 @@ public class FtcRobotControllerActivity extends Activity
     public static Handler uiHandler;
 
 
-
-
     void myOnCreate(){
       getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -188,6 +186,11 @@ public class FtcRobotControllerActivity extends Activity
         cameraBridgeViewBase.disableView();
       }
     }
+
+    void updateCameraView(){
+
+    }
+
 
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -297,6 +300,16 @@ public class FtcRobotControllerActivity extends Activity
       RobotLog.vv(TAG, "ACTION_USB_DEVICE_ATTACHED: %s", usbDevice.getDeviceName());
 
       if (usbDevice != null) {  // paranoia
+
+        //BOTMAN CODE
+        Log.i("Botman Testing Tag", "USB Device Connected, Vendor Id = " + usbDevice.getVendorId() + ", Product Id = " + usbDevice.getProductId());
+        if (usbDevice.getVendorId() == 1133 && usbDevice.getProductId() == 2085){ //Checks if the device is our webcam. If so, it sets the camera listener to it.
+          Log.i("Botman Testing Tag", "USB Camera Detected, Device name is: " + usbDevice.getDeviceName()); //Testing how the android system handles USB Devices, If it's like Linux, then I know what to do.
+          //String name = usbDevice.getDeviceName();
+          //cameraBridgeViewBase.setCameraIndex(2); //Test?
+
+        }
+        //END BOTMAN CODE
         // We might get attachment notifications before the event loop is set up, so
         // we hold on to them and pass them along only when we're good and ready.
         if (receivedUsbAttachmentNotifications != null) { // *total* paranoia

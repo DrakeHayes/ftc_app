@@ -56,7 +56,6 @@ public class OpenCVTestingOp extends OpMode {
                     try {
                         robot.detector.update();
 
-
                         minerals = robot.detector.getMinerals();
 
                         Log.i(TAG, "Detected " + goldCount(minerals) + " Gold Minerals");
@@ -64,6 +63,7 @@ public class OpenCVTestingOp extends OpMode {
 
                         telemetry.addData("Gold Minerals Seen ", goldCount(minerals));
                         telemetry.addData("Silver Minerals Seen ", silverCount(minerals));
+                        telemetry.addData("Expected Mineral Position: ",robot.detector.expectedPosition() );
 
                     }
                     catch (Exception ex){
@@ -83,7 +83,7 @@ public class OpenCVTestingOp extends OpMode {
 
     @Override
     public void loop() {
-        //Empty, as I am instead looping via an executor service. I have no Idea if this will work, but I'm doing it anyway.
+        //Empty, as I am instead looping via an executor service.
     }
 
     @Override

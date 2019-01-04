@@ -12,6 +12,7 @@ public interface MineralDetector {
     public void setMaskCrater(boolean t);
     public ArrayList<Mineral> getMinerals();
     public void findMinerals(List<Mineral> minerals);
+    public MineralPosition expectedPosition();
     public Mat getFrame();
 
 }

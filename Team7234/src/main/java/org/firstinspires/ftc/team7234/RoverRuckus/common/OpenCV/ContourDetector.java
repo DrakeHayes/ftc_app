@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 public class ContourDetector implements MineralDetector {
@@ -100,7 +101,7 @@ public class ContourDetector implements MineralDetector {
 
         //Min and Max HSV for Silver Minerals
         Scalar ballMin = new Scalar(0, 0, 220);
-        Scalar ballMax = new Scalar(180, 20, 255);
+        Scalar ballMax = new Scalar(180, 255, 255);
 
         Mat hsvImage = new Mat();
 
@@ -161,6 +162,93 @@ public class ContourDetector implements MineralDetector {
                 + ((sortedSilver.size() > 2) ? "2 Silver Minerals." : sortedSilver.size() + " Silver minerals.")
         );
     }
+
+    @Override
+    public MineralPosition expectedPosition() {
+        try {
+            ArrayList<Mineral> goldReadings = new ArrayList<>();
+            ArrayList<Mineral> silverReadings = new ArrayList<>();
+
+            for (Mineral m :
+                    minerals) {
+                if (m instanceof GoldMineral) {
+                    goldReadings.add(m);
+                } else if (m instanceof SilverMineral) {
+                    silverReadings.add(m);
+                }
+            }
+
+
+            //region Averaging
+            OptionalDouble avgGold = goldReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+            OptionalDouble avgSilver = silverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+
+            ArrayList<Mineral> leftSilverReadings = new ArrayList<>();
+            ArrayList<Mineral> rightSilverReadings = new ArrayList<>();
+
+            if (avgSilver.isPresent()) {
+                for (Mineral m :
+                        silverReadings) {
+                    if (m.getX() < avgSilver.getAsDouble()) {
+                        leftSilverReadings.add(m);
+                    } else {
+                        rightSilverReadings.add(m);
+                    }
+                }
+            } else {
+                return MineralPosition.CENTER;
+            }
+
+
+            OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+            OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+
+            //endregion
+            //region Set Positions
+            if (avgGold.isPresent() && leftSilver.isPresent() && rightSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
+                if (avgGold.getAsDouble() < leftSilver.getAsDouble()) {
+                    return MineralPosition.LEFT;
+                }
+                else if (avgGold.getAsDouble() > rightSilver.getAsDouble()) {
+                    return MineralPosition.RIGHT;
+                }
+                else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else if (avgGold.isPresent() && leftSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
+                if (avgGold.getAsDouble() < leftSilver.getAsDouble()) {
+                    return MineralPosition.LEFT;
+                } else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else if (avgGold.isPresent() && rightSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                if (avgGold.getAsDouble() > rightSilver.getAsDouble()) {
+                    return MineralPosition.RIGHT;
+                } else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else {
+                return MineralPosition.CENTER;
+            }
+            //endregion
+        }
+        catch (Exception ex){
+            Log.w(TAG, "Exception " + ex + " Encountered in Locating Mineral, defaulting to center.");
+            return MineralPosition.CENTER;
+        }
+
+    }
+
 
     @Override
     public void stop(){
