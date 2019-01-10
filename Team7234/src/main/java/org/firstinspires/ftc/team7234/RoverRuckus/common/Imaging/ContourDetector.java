@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
@@ -12,12 +13,13 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
@@ -40,6 +42,8 @@ public class ContourDetector implements MineralDetector {
     public boolean isFinished = false;
 
     private boolean maskCrater;
+
+    int i = 1;
 
     public ContourDetector(){
         maskCrater = false;
@@ -125,6 +129,14 @@ public class ContourDetector implements MineralDetector {
         Imgproc.findContours(blockMask, blockContours, blockHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
         Imgproc.findContours(ballMask, ballContours, ballHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
+        File outDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/images/");
+        outDir.mkdirs();
+
+        Imgcodecs.imwrite(outDir.getAbsolutePath() + i + "-pure.png", frame);
+        Imgcodecs.imwrite(outDir.getAbsolutePath() + i + "-blocks.png", blockMask);
+        Imgcodecs.imwrite(outDir.getAbsolutePath() + i + "-balls.png", ballMask);
+
+        i++;
 
         //TODO: Modify this to filter out small contours
 
@@ -283,6 +295,9 @@ public class ContourDetector implements MineralDetector {
                 new Scalar(0),
                 -1
         );
+
+        Log.v(TAG, "Frame rows: " + frame.rows() + ", Columns: " + mask.cols());
+        Log.v(TAG, "Crater Mask rows: " + mask.rows() + ", Columns: " + mask.cols());
 
 
 

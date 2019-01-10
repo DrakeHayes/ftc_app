@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
 import java.util.ArrayList;
 import java.util.Collections;

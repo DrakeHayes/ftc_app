@@ -4,18 +4,15 @@ import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.GoldMineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralPosition;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.SilverMineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.GoldMineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.Mineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.MineralPosition;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.SilverMineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.AllianceColor;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
-import org.firstinspires.ftc.team7234.RoverRuckus.opmodes.Autonomous.RedDepot;
 
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
@@ -35,6 +32,9 @@ public class AutoBase extends OpMode {
     private static final int timeDelay = 1000/sampleRate; //Delay between samples in milliseconds
 
     private ArrayList<Mineral> allMinerals = new ArrayList<>();
+
+
+
 
 
     private MineralPosition finalPos = null;
@@ -153,7 +153,7 @@ public class AutoBase extends OpMode {
                 state = CurrentState.LOWER;
                 break;
             case LOWER:
-                if (robot.extension.getCurrentPosition() < EXTENSION_TARGET){
+                if (robot.extension.getCurrentPosition() < EXTENSION_TARGET || elapsedTime.milliseconds() > 14000){ //Failsafe
                     elapsedTime.reset();
 
                     if (timer != null){

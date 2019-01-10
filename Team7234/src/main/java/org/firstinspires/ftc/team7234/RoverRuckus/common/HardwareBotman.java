@@ -1,21 +1,16 @@
 package org.firstinspires.ftc.team7234.RoverRuckus.common;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.CascadeDetector;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.ContourDetector;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralDetector;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.ContourDetector;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.MineralDetector;
 
 public class HardwareBotman {
 
@@ -78,6 +73,7 @@ public class HardwareBotman {
         rightWheel.setPower(0.);
 
         //Set ZeroPowerBehaviors
+        armTwist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 
@@ -125,15 +121,17 @@ public class HardwareBotman {
         leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armTwist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         /*
         The left and right wheels are not hooked up to encoders so we cannot use them to drive
         these motors.  We do have one hooked up to the linear actuator.  So, we can use one to
         drive it
          */
-        leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armTwist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     /*
     This block of code helps the robot follow a straight path while using the gyro.  If the robot

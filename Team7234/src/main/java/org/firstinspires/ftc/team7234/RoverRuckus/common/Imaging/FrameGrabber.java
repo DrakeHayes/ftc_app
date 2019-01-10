@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
-import android.app.Activity;
 import android.util.Log;
 import android.view.SurfaceView;
 
