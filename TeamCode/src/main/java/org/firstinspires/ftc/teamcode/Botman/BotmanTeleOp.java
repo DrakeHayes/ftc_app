@@ -1,12 +1,8 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.opmodes;
+package org.firstinspires.ftc.teamcode.Botman;
 
 import android.util.Log;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-import org.firstinspires.ftc.team7234.RoverRuckus.common.HardwareBotman;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -18,10 +14,9 @@ public class BotmanTeleOp extends OpMode {
     private final String logTag = HardwareBotman.class.getName();
 
     //Define the speed of the motors as doubles
-    double leftSpeed;
-    double rightSpeed;
-
-    double extendSpeed;
+    double leftSpeed = 0;
+    double rightSpeed = 0;
+    double extendSpeed = 0;
 
     @Override
     public void init() {
@@ -38,9 +33,15 @@ public class BotmanTeleOp extends OpMode {
         Log.i(logTag, "Robot Initialized in " + robot.time + " ms");
 
         robot.resetEncoders();
-        robot.extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
     }
+
+    @Override
+    public void start() {
+        robot.extension.setDirection(DcMotor.Direction.REVERSE);
+        robot.extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.DriveWithoutEncoders();
+    }
+
 
     @Override
     public void loop() {
@@ -55,23 +56,25 @@ public class BotmanTeleOp extends OpMode {
         robot.leftWheel.setPower(leftSpeed);
         robot.extension.setPower(extendSpeed);
 
-        if (gamepad2.a){
-            robot.collector.setPower(1);
-        } else if (gamepad2.b){
-            robot.collector.setPower(-1);
-        } else  if (gamepad2.x){
-            robot.collector.setPower(0);
-        }
-
-        if (gamepad2.right_stick_y<-0.1){
-            robot.armExtension.setPower(gamepad2.right_stick_y);
-        } else if (gamepad2.right_stick_y>0.1){
-            robot.armExtension.setPower(gamepad2.right_stick_y);
-        } else {
-            robot.armExtension.setPower(0);
-        }
+//        if (gamepad2.a){
+//            robot.collector.setPower(1);
+//        } else if (gamepad2.b){
+//            robot.collector.setPower(-1);
+//        } else  if (gamepad2.x){
+//            robot.collector.setPower(0);
+//        }
+//
+//        if (gamepad2.right_stick_y<-0.1){
+//            robot.armExtension.setPower(gamepad2.right_stick_y);
+//        } else if (gamepad2.right_stick_y>0.1){
+//            robot.armExtension.setPower(gamepad2.right_stick_y);
+//        } else {
+//            robot.armExtension.setPower(0);
+//        }
         //Get the current position of the motor
         telemetry.addData("Extension Position", robot.extension.getCurrentPosition());
+        telemetry.addData("Left Motor", robot.leftWheel.getCurrentPosition());
+        telemetry.addData("Right Motor", robot.rightWheel.getCurrentPosition());
 
 
 
