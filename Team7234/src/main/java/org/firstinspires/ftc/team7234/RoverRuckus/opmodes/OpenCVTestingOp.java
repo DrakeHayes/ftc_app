@@ -1,20 +1,16 @@
 package org.firstinspires.ftc.team7234.RoverRuckus.opmodes;
 
 
-import android.content.Context;
 import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.HardwareCameraOnly;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.GoldMineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.SilverMineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.GoldMineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.Mineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.SilverMineral;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,7 +52,6 @@ public class OpenCVTestingOp extends OpMode {
                     try {
                         robot.detector.update();
 
-
                         minerals = robot.detector.getMinerals();
 
                         Log.i(TAG, "Detected " + goldCount(minerals) + " Gold Minerals");
@@ -64,6 +59,7 @@ public class OpenCVTestingOp extends OpMode {
 
                         telemetry.addData("Gold Minerals Seen ", goldCount(minerals));
                         telemetry.addData("Silver Minerals Seen ", silverCount(minerals));
+                        telemetry.addData("Expected Mineral Position: ",robot.detector.expectedPosition() );
 
                     }
                     catch (Exception ex){
@@ -83,7 +79,7 @@ public class OpenCVTestingOp extends OpMode {
 
     @Override
     public void loop() {
-        //Empty, as I am instead looping via an executor service. I have no Idea if this will work, but I'm doing it anyway.
+        //Empty, as I am instead looping via an executor service.
     }
 
     @Override

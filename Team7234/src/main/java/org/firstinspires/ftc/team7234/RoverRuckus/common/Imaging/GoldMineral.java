@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
 public class GoldMineral extends Mineral {
     GoldMineral(int x, int y, int width, int height){

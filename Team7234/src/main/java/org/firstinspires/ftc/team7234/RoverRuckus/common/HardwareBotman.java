@@ -2,7 +2,6 @@ package org.firstinspires.ftc.team7234.RoverRuckus.common;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -10,10 +9,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.CascadeDetector;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.ContourDetector;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralDetector;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.ContourDetector;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.MineralDetector;
 
 public class HardwareBotman {
 
@@ -24,11 +21,11 @@ public class HardwareBotman {
     public DcMotor leftWheel;
     public DcMotor extension;
 
-    public DcMotor armExtension;
 
-    public DcMotor collector;
+    public DcMotor collectorSpinner;
+    public DcMotor armLift;
+    public DcMotor armTwist;
 
-    public DcMotor Elbow;
 
 
     BNO055IMU imu;
@@ -62,18 +59,23 @@ public class HardwareBotman {
         //Define and initialize Motors
         leftWheel = hwMap.get(DcMotor.class, "left_drive");
         rightWheel = hwMap.get(DcMotor.class, "right_drive");
-        armExtension=hwMap.get(DcMotor.class,"arm_lift");
-        Elbow=hwMap.get(DcMotor.class, "arm_twist");
-        collector=hwMap.get(DcMotor.class, "collector");
         extension = hwMap.get(DcMotor.class, "latch");
 
+        collectorSpinner = hwMap.get(DcMotor.class, "collector");
+        armLift = hwMap.get(DcMotor.class, "arm_lift");
+        armTwist = hwMap.get(DcMotor.class, "arm_twist");
 
-        leftWheel.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightWheel.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        leftWheel.setDirection(DcMotor.Direction.REVERSE);
+        rightWheel.setDirection(DcMotor.Direction.FORWARD);
 
         //Set all motors to zero power
         leftWheel.setPower(0.);
         rightWheel.setPower(0.);
+
+        //Set ZeroPowerBehaviors
+        armTwist.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
 
         //resets encoders
@@ -120,15 +122,17 @@ public class HardwareBotman {
         leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armTwist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         /*
         The left and right wheels are not hooked up to encoders so we cannot use them to drive
         these motors.  We do have one hooked up to the linear actuator.  So, we can use one to
         drive it
          */
-        leftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         extension.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armTwist.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     /*
     This block of code helps the robot follow a straight path while using the gyro.  If the robot
@@ -136,7 +140,7 @@ public class HardwareBotman {
      */
     public void driveByGyro(double speed, double header){
         if(speed > 0.9 || speed < -0.9) {
-            throw new IllegalArgumentException("Nah fam, keep it between -0.9 and 0.9" + speed);
+            throw new IllegalArgumentException("Speed must be between 0.9 and -0.9" + speed);
         }
         if (heading() > header + 3) {
             leftWheel.setPower(speed + 0.1);

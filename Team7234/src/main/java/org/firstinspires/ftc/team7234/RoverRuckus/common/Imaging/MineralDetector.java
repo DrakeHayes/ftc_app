@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
 import org.opencv.core.Mat;
 
@@ -12,6 +12,7 @@ public interface MineralDetector {
     public void setMaskCrater(boolean t);
     public ArrayList<Mineral> getMinerals();
     public void findMinerals(List<Mineral> minerals);
+    public MineralPosition expectedPosition();
     public Mat getFrame();
 
 }

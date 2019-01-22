@@ -1,14 +1,11 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
 import org.firstinspires.ftc.team7234.R;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -24,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalDouble;
 
 public class CascadeDetector implements MineralDetector{
 
@@ -197,6 +195,92 @@ public class CascadeDetector implements MineralDetector{
 
 
         return mask;
+    }
+
+    @Override
+    public MineralPosition expectedPosition() {
+        try {
+            ArrayList<Mineral> goldReadings = new ArrayList<>();
+            ArrayList<Mineral> silverReadings = new ArrayList<>();
+
+            for (Mineral m :
+                    minerals) {
+                if (m instanceof GoldMineral) {
+                    goldReadings.add(m);
+                } else if (m instanceof SilverMineral) {
+                    silverReadings.add(m);
+                }
+            }
+
+
+            //region Averaging
+            OptionalDouble avgGold = goldReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+            OptionalDouble avgSilver = silverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+
+            ArrayList<Mineral> leftSilverReadings = new ArrayList<>();
+            ArrayList<Mineral> rightSilverReadings = new ArrayList<>();
+
+            if (avgSilver.isPresent()) {
+                for (Mineral m :
+                        silverReadings) {
+                    if (m.getX() < avgSilver.getAsDouble()) {
+                        leftSilverReadings.add(m);
+                    } else {
+                        rightSilverReadings.add(m);
+                    }
+                }
+            } else {
+                return MineralPosition.CENTER;
+            }
+
+
+            OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+            OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+
+            //endregion
+            //region Set Positions
+            if (avgGold.isPresent() && leftSilver.isPresent() && rightSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
+                if (avgGold.getAsDouble() < leftSilver.getAsDouble()) {
+                    return MineralPosition.LEFT;
+                }
+                else if (avgGold.getAsDouble() > rightSilver.getAsDouble()) {
+                    return MineralPosition.RIGHT;
+                }
+                else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else if (avgGold.isPresent() && leftSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
+                if (avgGold.getAsDouble() < leftSilver.getAsDouble()) {
+                    return MineralPosition.LEFT;
+                } else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else if (avgGold.isPresent() && rightSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                if (avgGold.getAsDouble() > rightSilver.getAsDouble()) {
+                    return MineralPosition.RIGHT;
+                } else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else {
+                return MineralPosition.CENTER;
+            }
+            //endregion
+        }
+        catch (Exception ex){
+            Log.w(TAG, "Exception " + ex + " Encountered in Locating Mineral, defaulting to center.");
+            return MineralPosition.CENTER;
+        }
+
     }
 
 }

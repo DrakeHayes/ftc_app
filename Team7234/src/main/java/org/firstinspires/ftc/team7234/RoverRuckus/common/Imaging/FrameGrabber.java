@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
-import android.app.Activity;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -17,7 +16,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
 
     private Mat frame, tmp1, tmp2;
-    CameraBridgeViewBase cameraBase;
+    private CameraBridgeViewBase cameraBase;
 
     private final String TAG = "FrameGrabber";
 
@@ -34,6 +33,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
                     cameraBridgeViewBase.setMinimumHeight(frameHeightRequest);
                     cameraBridgeViewBase.setMaxFrameSize(frameWidthRequest, frameHeightRequest);
                     cameraBridgeViewBase.setCvCameraViewListener(FrameGrabber.this);
+                    //cameraBridgeViewBase.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_FRONT);
                     cameraBridgeViewBase.enableView();
                 }
             });
@@ -58,7 +58,6 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
             public void run() {
                 cameraBase.disableView();
                 cameraBase.setVisibility(SurfaceView.INVISIBLE);
-
             }
         });
 
@@ -76,13 +75,8 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
         return frame;
     }
 
-    Mat getFrame(){
+    Mat getFrame(){ //RETURNS AS BGRA
         return frame;
-    }
-    Mat getHsvFrame(){
-        Mat hsv = new Mat();
-        Imgproc.cvtColor(getFrame(), hsv, Imgproc.COLOR_BGR2HSV);
-        return hsv;
     }
 
     private void processFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
@@ -92,6 +86,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
         Core.transpose(frame, tmp1);
         Imgproc.resize(tmp1, tmp2, tmp2.size(), 0, 0, 0);
+        Imgproc.cvtColor(tmp2, tmp2, Imgproc.COLOR_RGBA2BGRA);
         Core.transpose(tmp2, frame);
 
     }

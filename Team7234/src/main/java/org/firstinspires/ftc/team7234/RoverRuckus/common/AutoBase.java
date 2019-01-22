@@ -6,10 +6,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.GoldMineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.Mineral;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.MineralPosition;
-import org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV.SilverMineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.GoldMineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.Mineral;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.MineralPosition;
+import org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging.SilverMineral;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.AllianceColor;
 import org.firstinspires.ftc.team7234.RoverRuckus.common.enums.FieldPosition;
 
@@ -37,7 +37,7 @@ public class AutoBase extends OpMode {
 
     private final AllianceColor allianceColor;
     private final FieldPosition fieldPosition;
-    private final String TAG = "Autonomous";
+    private final String TAG = "BotmanAutonomous";
 
     private static final int sampleRate = 4; //How many samples to take, per second.
     private static final int timeDelay = 1000/sampleRate; //Delay between samples in milliseconds
@@ -45,11 +45,14 @@ public class AutoBase extends OpMode {
     private ArrayList<Mineral> allMinerals = new ArrayList<>();
 
 
+
+
+
     private MineralPosition finalPos = null;
 
     private final double EXTENSION_TARGET = -38245;
-    private final double LEFT_MINERAL_THETA = -15;
-    private final double RIGHT_MINERAL_THETA = 15;
+    private final double LEFT_MINERAL_THETA = -30;
+    private final double RIGHT_MINERAL_THETA = 30;
 
     private final double DEPOT_THETA = -135; //Rotation target for going from
 
@@ -61,12 +64,18 @@ public class AutoBase extends OpMode {
     private int samplesTaken = 0;
 
     ElapsedTime elapsedTime = new ElapsedTime();
+    boolean stopAtDescent;
 
 
+    public AutoBase(AllianceColor allianceColor, FieldPosition fieldPosition, boolean stopAtDescent){
+        this(allianceColor, fieldPosition);
+        this.stopAtDescent = stopAtDescent;
+    }
 
     public AutoBase(AllianceColor allianceColor, FieldPosition fieldPosition){
         this.allianceColor = allianceColor;
         this.fieldPosition = fieldPosition;
+        this.stopAtDescent = false;
     }
 
 
@@ -84,6 +93,8 @@ public class AutoBase extends OpMode {
 
         DEPOT_TURN_TO_DEPOT,
         DEPOT_GO_TO_DEPOT,
+
+        RECENTER_TO_CORNER,
 
         DEPOSIT_OBJECT,
         STOP
@@ -128,6 +139,9 @@ public class AutoBase extends OpMode {
         catch (Exception ex){
             Log.e(TAG, ex.getMessage());
         }
+
+        robot.leftWheel.setDirection(DcMotor.Direction.FORWARD);
+        robot.rightWheel.setDirection(DcMotor.Direction.REVERSE);
         ///robot.extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         //robot.rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -137,6 +151,7 @@ public class AutoBase extends OpMode {
     public void loop() {
 
         telemetry.addData("Program State: ", state);
+        telemetry.addData("Extension Position", robot.extension.getCurrentPosition());
         telemetry.addData("Expected Mineral Position: ", finalPos);
         telemetry.addData("Samples Taken: ", samplesTaken);
         telemetry.addData("Robot Heading: ", robot.heading());
@@ -149,18 +164,18 @@ public class AutoBase extends OpMode {
                 state = CurrentState.LOWER;
                 break;
             case LOWER:
-                if (robot.extension.getCurrentPosition() < EXTENSION_TARGET){
+                if (robot.extension.getCurrentPosition() < EXTENSION_TARGET || elapsedTime.milliseconds() > 14000){ //Failsafe
                     elapsedTime.reset();
 
                     if (timer != null){
-
                         timer.shutdownNow();
                     }
-
+                    Log.i(TAG, "Finished lowering");
                     robot.extension.setPower(0.0);
 
                     state = CurrentState.FORWARD;
                 }
+                Log.v(TAG, "Descending to " + EXTENSION_TARGET +", Current position is " + robot.extension.getCurrentPosition());
 
                 break;
             case FORWARD:         //Moves the robot forward to completely detach from the latch.  May need modification.
@@ -169,9 +184,16 @@ public class AutoBase extends OpMode {
 
                     robot.leftWheel.setPower(0.0);
                     robot.rightWheel.setPower(0.0);
-                    state = CurrentState.EVALUATE_MINERALS;
+                    Log.i(TAG, "Forward State completed, evaluating minerals");
+                    if (stopAtDescent){
+                        state = CurrentState.STOP;
+                    }
+                    else {
+                        state = CurrentState.EVALUATE_MINERALS;
+                    }
                 }
                 else {
+                    Log.v(TAG, "Moving forward to target position");
                     robot.leftWheel.setPower(.75);
                     robot.rightWheel.setPower(.75);
                 }
@@ -193,8 +215,8 @@ public class AutoBase extends OpMode {
 
 
                     //region Averaging
-                    OptionalDouble avgGold = goldReadings.stream().mapToDouble(Mineral::getX).average();
-                    OptionalDouble avgSilver = silverReadings.stream().mapToDouble(Mineral::getX).average();
+                    OptionalDouble avgGold = goldReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
+                    OptionalDouble avgSilver = silverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
 
                     ArrayList<Mineral> leftSilverReadings = new ArrayList<>();
                     ArrayList<Mineral> rightSilverReadings = new ArrayList<>();
@@ -215,8 +237,8 @@ public class AutoBase extends OpMode {
                     }
 
 
-                    OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(Mineral::getX).average();
-                    OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(Mineral::getX).average();
+                    OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
+                    OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth()/2.0) ).average();
 
                     //endregion
                     //region Set Positions
@@ -230,6 +252,9 @@ public class AutoBase extends OpMode {
                         else{
                             finalPos = MineralPosition.CENTER;
                         }
+                        Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                        Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                        Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
                     }
                     else if (avgGold.isPresent() && leftSilver.isPresent()){
                         if (avgGold.getAsDouble() < leftSilver.getAsDouble()){
@@ -238,6 +263,8 @@ public class AutoBase extends OpMode {
                         else{
                             finalPos = MineralPosition.CENTER;
                         }
+                        Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                        Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
                     }
                     else if (avgGold.isPresent() && rightSilver.isPresent()){
                         if (avgGold.getAsDouble() > rightSilver.getAsDouble()){
@@ -246,6 +273,8 @@ public class AutoBase extends OpMode {
                         else{
                             finalPos = MineralPosition.CENTER;
                         }
+                        Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                        Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
                     }
                     else {
                         finalPos = MineralPosition.CENTER;
@@ -253,46 +282,59 @@ public class AutoBase extends OpMode {
                     //endregion
                 }
                 catch (Exception ex){
+                    Log.w(TAG, "Exception " + ex + " Encountered in Locating Mineral, defaulting to center.");
                     finalPos = MineralPosition.CENTER;
                 }
                 finally {
+                    elapsedTime.reset();
+                    Log.i(TAG, "Minerals evaluated, mineral is in the " + finalPos.toString() + " Position.");
                     state = CurrentState.TURN_TO_MINERAL;
                 }
 
                 break;
+
             case TURN_TO_MINERAL:
-                switch (finalPos){
-                    case CENTER:
-                        elapsedTime.reset();
-                        state = CurrentState.REMOVE_MINERAL;
-                        break;
-                    case LEFT:
-                        robot.leftWheel.setPower(-0.5);
-                        robot.rightWheel.setPower(0.5);
-                        Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
-                        if (robot.heading() < LEFT_MINERAL_THETA){
+                if (elapsedTime.milliseconds() < 3000) { //Stops if turning goes over 2 seconds
+                    switch (finalPos) {
+                        case CENTER:
                             elapsedTime.reset();
                             state = CurrentState.REMOVE_MINERAL;
-                        }
-                        break;
-                    case RIGHT:
-                        robot.leftWheel.setPower(0.5);
-                        robot.rightWheel.setPower(-0.5);
-                        Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
-                        if (robot.heading() < RIGHT_MINERAL_THETA){
+                            break;
+                        case LEFT:
+                            robot.leftWheel.setPower(-0.5);
+                            robot.rightWheel.setPower(0.5);
+                            Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
+                            if (robot.heading() < LEFT_MINERAL_THETA || robot.heading() > LEFT_MINERAL_THETA + 360) {
+                                Log.i(TAG, "Left Turn completed, removing mineral");
+                                elapsedTime.reset();
+                                state = CurrentState.REMOVE_MINERAL;
+                            }
+                            break;
+                        case RIGHT:
+                            robot.leftWheel.setPower(0.5);
+                            robot.rightWheel.setPower(-0.5);
+                            Log.v(TAG, "Now turning to right mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
+                            if (robot.heading() < RIGHT_MINERAL_THETA || robot.heading() < RIGHT_MINERAL_THETA-360) {
+                                Log.i(TAG, "Right Turn completed, removing mineral");
+                                elapsedTime.reset();
+                                state = CurrentState.REMOVE_MINERAL;
+                            }
+                            break;
+                        default:
+                            Log.i(TAG, "No turn necessary, removing mineral");
                             elapsedTime.reset();
                             state = CurrentState.REMOVE_MINERAL;
-                        }
-                        break;
-                    default:
-                        elapsedTime.reset();
-                        state = CurrentState.REMOVE_MINERAL;
-                        break;
+                            break;
+                    }
+                }
+                else {
+                    state = CurrentState.REMOVE_MINERAL;
                 }
                 break;
 
             case REMOVE_MINERAL:
                 if (elapsedTime.milliseconds() >= 2000){
+                    Log.i(TAG, "Mineral removed");
                     robot.rightWheel.setPower(0.0);
                     robot.leftWheel.setPower(0.0);
                     switch (fieldPosition){
@@ -310,6 +352,33 @@ public class AutoBase extends OpMode {
                 }
                 break;
 
+            case RECENTER_TO_CORNER:
+                switch (finalPos){
+                    case CENTER:
+                        state = CurrentState.DEPOSIT_OBJECT;
+                        break;
+                    case LEFT:
+                        robot.leftWheel.setPower(0.5);
+                        robot.rightWheel.setPower(-0.5);
+                        if (robot.heading() > -LEFT_MINERAL_THETA || robot.heading() < -LEFT_MINERAL_THETA - 360 ){
+                            robot.leftWheel.setPower(0.0);
+                            robot.rightWheel.setPower(0.0);
+                            state = CurrentState.DEPOSIT_OBJECT;
+                        }
+                        break;
+                    case RIGHT:
+                        robot.leftWheel.setPower(-0.5);
+                        robot.rightWheel.setPower(0.5);
+                        if (robot.heading() < -RIGHT_MINERAL_THETA || robot.heading() > -RIGHT_MINERAL_THETA + 360){
+                            robot.leftWheel.setPower(0.0);
+                            robot.rightWheel.setPower(0.0);
+                            state = CurrentState.DEPOSIT_OBJECT;
+                        }
+                        break;
+                }
+                break;
+
+
             case DEPOT_TURN_TO_DEPOT:
                 switch (finalPos){
                     case CENTER:
@@ -321,6 +390,7 @@ public class AutoBase extends OpMode {
                 }
                 state = CurrentState.STOP;
                 break;
+
             case DEPOT_GO_TO_DEPOT:
                 state = CurrentState.STOP;
                 break;
@@ -356,6 +426,7 @@ public class AutoBase extends OpMode {
 
     @Override
     public void stop() {
+
         if (this.timer != null){
 
             Log.i(TAG, "Stopping timer");

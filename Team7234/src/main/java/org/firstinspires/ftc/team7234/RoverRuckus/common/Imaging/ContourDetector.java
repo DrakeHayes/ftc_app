@@ -1,6 +1,7 @@
-package org.firstinspires.ftc.team7234.RoverRuckus.common.OpenCV;
+package org.firstinspires.ftc.team7234.RoverRuckus.common.Imaging;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
 import org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity;
@@ -12,13 +13,15 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 public class ContourDetector implements MineralDetector {
@@ -39,6 +42,8 @@ public class ContourDetector implements MineralDetector {
     public boolean isFinished = false;
 
     private boolean maskCrater;
+
+    int i = 1;
 
     public ContourDetector(){
         maskCrater = false;
@@ -95,12 +100,12 @@ public class ContourDetector implements MineralDetector {
         Imgproc.blur(blurred, blurred, new Size(15, 15));
 
         //Min and Max HSV for Gold Minerals
-        Scalar blockMin = new Scalar(0, 70, 150);
+        Scalar blockMin = new Scalar(0, 110, 110);
         Scalar blockMax = new Scalar(33, 255, 255);
 
         //Min and Max HSV for Silver Minerals
         Scalar ballMin = new Scalar(0, 0, 220);
-        Scalar ballMax = new Scalar(180, 20, 255);
+        Scalar ballMax = new Scalar(180, 255, 255);
 
         Mat hsvImage = new Mat();
 
@@ -118,12 +123,20 @@ public class ContourDetector implements MineralDetector {
         Imgproc.erode(blockMask, blockMask, erodeElement);
         Imgproc.erode(ballMask, ballMask, erodeElement);
 
-        Imgproc.dilate(blockMask, blockMask, dilateElement);
-        Imgproc.dilate(ballMask, ballMask, dilateElement);
+        //Imgproc.dilate(blockMask, blockMask, dilateElement);
+        //Imgproc.dilate(ballMask, ballMask, dilateElement);
 
         Imgproc.findContours(blockMask, blockContours, blockHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
         Imgproc.findContours(ballMask, ballContours, ballHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
+        File outDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/images/");
+        outDir.mkdirs();
+
+        Imgcodecs.imwrite(outDir.getAbsolutePath() + i + "-pure.png", frame);
+        Imgcodecs.imwrite(outDir.getAbsolutePath() + i + "-blocks.png", blockMask);
+        Imgcodecs.imwrite(outDir.getAbsolutePath() + i + "-balls.png", ballMask);
+
+        i++;
 
         //TODO: Modify this to filter out small contours
 
@@ -163,6 +176,93 @@ public class ContourDetector implements MineralDetector {
     }
 
     @Override
+    public MineralPosition expectedPosition() {
+        try {
+            ArrayList<Mineral> goldReadings = new ArrayList<>();
+            ArrayList<Mineral> silverReadings = new ArrayList<>();
+
+            for (Mineral m :
+                    minerals) {
+                if (m instanceof GoldMineral) {
+                    goldReadings.add(m);
+                } else if (m instanceof SilverMineral) {
+                    silverReadings.add(m);
+                }
+            }
+
+
+            //region Averaging
+            OptionalDouble avgGold = goldReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+            OptionalDouble avgSilver = silverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+
+            ArrayList<Mineral> leftSilverReadings = new ArrayList<>();
+            ArrayList<Mineral> rightSilverReadings = new ArrayList<>();
+
+            if (avgSilver.isPresent()) {
+                for (Mineral m :
+                        silverReadings) {
+                    if (m.getX() < avgSilver.getAsDouble()) {
+                        leftSilverReadings.add(m);
+                    } else {
+                        rightSilverReadings.add(m);
+                    }
+                }
+            } else {
+                return MineralPosition.CENTER;
+            }
+
+
+            OptionalDouble leftSilver = leftSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+            OptionalDouble rightSilver = rightSilverReadings.stream().mapToDouble(m -> (m.getX() + m.getWidth() / 2.0)).average();
+
+            //endregion
+            //region Set Positions
+            if (avgGold.isPresent() && leftSilver.isPresent() && rightSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
+                if (avgGold.getAsDouble() < leftSilver.getAsDouble()) {
+                    return MineralPosition.LEFT;
+                }
+                else if (avgGold.getAsDouble() > rightSilver.getAsDouble()) {
+                    return MineralPosition.RIGHT;
+                }
+                else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else if (avgGold.isPresent() && leftSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Left Silver Position: " + leftSilver.getAsDouble());
+                if (avgGold.getAsDouble() < leftSilver.getAsDouble()) {
+                    return MineralPosition.LEFT;
+                } else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else if (avgGold.isPresent() && rightSilver.isPresent()) {
+                Log.d(TAG, "Average Gold Position: " + avgGold.getAsDouble());
+                Log.d(TAG, "Right Silver Position: " + rightSilver.getAsDouble());
+                if (avgGold.getAsDouble() > rightSilver.getAsDouble()) {
+                    return MineralPosition.RIGHT;
+                } else {
+                    return MineralPosition.CENTER;
+                }
+
+            } else {
+                return MineralPosition.CENTER;
+            }
+            //endregion
+        }
+        catch (Exception ex){
+            Log.w(TAG, "Exception " + ex + " Encountered in Locating Mineral, defaulting to center.");
+            return MineralPosition.CENTER;
+        }
+
+    }
+
+
+    @Override
     public void stop(){
         Log.i(TAG, "Stopping Contour Detector");
         frameGrabber.stop();
@@ -195,6 +295,9 @@ public class ContourDetector implements MineralDetector {
                 new Scalar(0),
                 -1
         );
+
+        Log.v(TAG, "Frame rows: " + frame.rows() + ", Columns: " + mask.cols());
+        Log.v(TAG, "Crater Mask rows: " + mask.rows() + ", Columns: " + mask.cols());
 
 
 
