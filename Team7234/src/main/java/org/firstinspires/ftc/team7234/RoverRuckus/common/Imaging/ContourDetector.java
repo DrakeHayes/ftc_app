@@ -100,7 +100,7 @@ public class ContourDetector implements MineralDetector {
         Imgproc.blur(blurred, blurred, new Size(15, 15));
 
         //Min and Max HSV for Gold Minerals
-        Scalar blockMin = new Scalar(0, 70, 150);
+        Scalar blockMin = new Scalar(0, 110, 110);
         Scalar blockMax = new Scalar(33, 255, 255);
 
         //Min and Max HSV for Silver Minerals
@@ -123,8 +123,8 @@ public class ContourDetector implements MineralDetector {
         Imgproc.erode(blockMask, blockMask, erodeElement);
         Imgproc.erode(ballMask, ballMask, erodeElement);
 
-        Imgproc.dilate(blockMask, blockMask, dilateElement);
-        Imgproc.dilate(ballMask, ballMask, dilateElement);
+        //Imgproc.dilate(blockMask, blockMask, dilateElement);
+        //Imgproc.dilate(ballMask, ballMask, dilateElement);
 
         Imgproc.findContours(blockMask, blockContours, blockHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
         Imgproc.findContours(ballMask, ballContours, ballHierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);

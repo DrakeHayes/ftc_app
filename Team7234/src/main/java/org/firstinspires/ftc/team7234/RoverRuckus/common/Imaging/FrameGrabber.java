@@ -75,13 +75,8 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
         return frame;
     }
 
-    Mat getFrame(){
+    Mat getFrame(){ //RETURNS AS BGRA
         return frame;
-    }
-    Mat getHsvFrame(){
-        Mat hsv = new Mat();
-        Imgproc.cvtColor(getFrame(), hsv, Imgproc.COLOR_BGR2HSV);
-        return hsv;
     }
 
     private void processFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
@@ -91,6 +86,7 @@ public class FrameGrabber implements CameraBridgeViewBase.CvCameraViewListener2 
 
         Core.transpose(frame, tmp1);
         Imgproc.resize(tmp1, tmp2, tmp2.size(), 0, 0, 0);
+        Imgproc.cvtColor(tmp2, tmp2, Imgproc.COLOR_RGBA2BGRA);
         Core.transpose(tmp2, frame);
 
     }
