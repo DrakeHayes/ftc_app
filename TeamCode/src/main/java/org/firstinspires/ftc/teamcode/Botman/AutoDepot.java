@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,9 +20,11 @@ public class AutoDepot extends OpMode {
     private static final int timeDelay = 1000/sampleRate; //Delay between samples in milliseconds
 
     private final double EXTENSION_TARGET = 10650;
-    private final double LEFT_MINERAL_THETA = 20;
-    private final double RIGHT_MINERAL_THETA = -20;
+    private final double LEFT_MINERAL_THETA = 22;
+    private final double RIGHT_MINERAL_THETA = -23;
     private final double DEPOT_THETA = 5;
+    private double PARKING_TARGET = 4000;
+    private double CRATER_ANGLE = 85;
 
     private boolean modeChange = false;
     private boolean axisChanged = false;
@@ -43,8 +46,13 @@ public class AutoDepot extends OpMode {
 
         DEPOT_TURN_TO_DEPOT,
         DEPOT_DRIVE_TO_DEPOT,
+        DEPOT_LOWER_ARM,
+        DEPOT_DISPENSE_MARKER,
+        DEPOT_LIFT_ARM,
         DEPOT_TURN_TO_CRATER,
+        DEPOT_DRIVE_FORWARDS,
         DEPOT_DRIVE_TO_CRATER,
+        DEPOT_PARK_IN_CRATER,
         STOP
     }
 
@@ -204,10 +212,11 @@ public class AutoDepot extends OpMode {
 
             case DEPOT_DRIVE_TO_DEPOT:
                 robot.leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (robot.leftWheel.getCurrentPosition()>=1800){
+                if (robot.leftWheel.getCurrentPosition()>=500){
                     robot.rightWheel.setPower(0.0);
                     robot.leftWheel.setPower(0.0);
-                    state = CurrentState.DEPOT_TURN_TO_CRATER;
+                    elapsedTime.reset();
+                    state = CurrentState.DEPOT_LOWER_ARM;
                 }
                 else {
                     robot.leftWheel.setPower(.3);
@@ -215,65 +224,119 @@ public class AutoDepot extends OpMode {
                 }
                 break;
 
+            case DEPOT_LOWER_ARM:
+                if (elapsedTime.seconds()>3.5) {
+                    robot.collector.setPower(0);
+                    elapsedTime.reset();
+                    state=CurrentState.DEPOT_LIFT_ARM;
+                }
+                else if (elapsedTime.seconds()<0.5){
+                    robot.armCollectorRotation.setPower(.4);
+                }
+                else {
+                    robot.collector.setPower(-1);
+                    robot.armCollectorRotation.setPower(0);
+                }
+                break;
+
+        /*    case DEPOT_DISPENSE_MARKER:
+
+                if (elapsedTime.seconds()>3) {
+                    robot.collector.setPower(0);
+                    state=CurrentState.DEPOT_TURN_TO_CRATER;
+                }
+                else {
+                    robot.collector.setPower(-1);
+                }
+                break;
+*/
+            case DEPOT_LIFT_ARM:
+                if (elapsedTime.seconds()>0.75) {
+                    robot.armCollectorRotation.setPower(0);
+                    if (robot.mineralState== HardwareBotman.minerals.GOLD_CENTER){
+                        CRATER_ANGLE=85;
+                    }
+                    else if (robot.mineralState== HardwareBotman.minerals.GOLD_RIGHT){
+                        CRATER_ANGLE=75;
+                    }
+                    state=CurrentState.DEPOT_TURN_TO_CRATER;
+                }
+                else {
+                    robot.armCollectorRotation.setPower(-.8);
+                }
+                break;
+
             case DEPOT_TURN_TO_CRATER:
-                if (robot.heading() > 85){
+                if (robot.heading() > CRATER_ANGLE){
+                    robot.rightWheel.setPower(0.0);
+                    robot.leftWheel.setPower(0.0);
+                    if (robot.mineralState== HardwareBotman.minerals.GOLD_LEFT){
+                        PARKING_TARGET=3000;
+                        state = CurrentState.DEPOT_DRIVE_TO_CRATER;
+                    }
+                    else if (robot.mineralState== HardwareBotman.minerals.GOLD_RIGHT){
+                        PARKING_TARGET=4100;
+                        state = CurrentState.DEPOT_DRIVE_FORWARDS;
+                    }
+                    else{
+                        state = CurrentState.DEPOT_DRIVE_TO_CRATER;
+                    }
+                    robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                }
+                else {
+                    if (robot.mineralState== HardwareBotman.minerals.GOLD_LEFT){
+                        robot.rightWheel.setPower(0.3);
+                        robot.leftWheel.setPower(-0.3);
+                    }
+                    else if(robot.mineralState== HardwareBotman.minerals.GOLD_CENTER){
+                        robot.rightWheel.setPower(0.3);
+                        robot.leftWheel.setPower(-0.1);
+                    }
+                    else if(robot.mineralState== HardwareBotman.minerals.GOLD_RIGHT){
+                        robot.rightWheel.setPower(0.4);
+                        robot.leftWheel.setPower(0);
+                    }
+                }
+                break;
+
+            case DEPOT_DRIVE_FORWARDS:
+                robot.leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                if (robot.leftWheel.getCurrentPosition()>= 500){
                     robot.rightWheel.setPower(0.0);
                     robot.leftWheel.setPower(0.0);
                     robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     state = CurrentState.DEPOT_DRIVE_TO_CRATER;
                 }
                 else {
-                    robot.rightWheel.setPower(0.3);
-                    robot.leftWheel.setPower(-0.3);
+                    robot.rightWheel.setPower(0.4);
+                    robot.leftWheel.setPower(0.4);
                 }
                 break;
 
             case  DEPOT_DRIVE_TO_CRATER:
                 robot.leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (robot.leftWheel.getCurrentPosition()>=4000){
+                if (robot.leftWheel.getCurrentPosition()>=PARKING_TARGET){
                     robot.rightWheel.setPower(0.0);
                     robot.leftWheel.setPower(0.0);
-                    state = CurrentState.STOP;
+                    elapsedTime.reset();
+                    state = CurrentState.DEPOT_PARK_IN_CRATER;
                 }
                 else {
                     robot.driveByGyro(0.4, 130);
                 }
                 break;
-         /**
-                                case CRATER_TURN_TO_DEPOT:
-                                    robot.leftWheel.setPower(-0.3);
-                                    robot.rightWheel.setPower(0.3);
-                                    if (robot.heading() > 100){
-                                        robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                                        state = CurrentState.CRATER_NAV_TO_DEPOT;
-                                    }
-                                    break;
 
-                                case CRATER_NAV_TO_DEPOT:
-                                    robot.leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                                    if (robot.leftWheel.getCurrentPosition()>2500){
-                                        robot.rightWheel.setPower(0.0);
-                                        robot.leftWheel.setPower(0.0);
-                                        state = CurrentState.CRATER_NAV_TO_CRATER;
-                                    }
-                                    else {
-                                        robot.driveByGyro(0.4,130);
-                                    }
-                                    break;
-
-                                case CRATER_NAV_TO_CRATER:
-                                    robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                                    robot.leftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                                    if (robot.leftWheel.getCurrentPosition()<=-4000){
-                                        robot.rightWheel.setPower(0.0);
-                                        robot.leftWheel.setPower(0.0);
-                                        state = CurrentState.STOP;
-                                    }
-                                    else {
-                                        robot.driveByGyro(-0.4,130);
-                                    }
+            case DEPOT_PARK_IN_CRATER:
+                if (elapsedTime.seconds()>0.5) {
+                    robot.armCollectorRotation.setPower(0);
+                    state=CurrentState.STOP;
+                }
+                else {
+                    robot.armCollectorRotation.setPower(0.4);
+                }
                 break;
-**/
+
             case STOP:
                 robot.leftWheel.setPower(0.0);
                 robot.rightWheel.setPower(0.0);

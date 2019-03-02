@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.Botman;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -39,9 +41,12 @@ public class HardwareBotman {
     public DcMotor rightWheel;
     public DcMotor leftWheel;
     public DcMotor extension;
-    //public DcMotor armExtension;
-    public DcMotorSimple collector;
-    //public DcMotorSimple Elbow;
+    public DcMotorSimple armExtension;
+    public DcMotor Elbow;
+    public DcMotorSimple armCollectorRotation;
+
+    public CRServo collector;
+    public CRServo collectingArmExtension;
 
     BNO055IMU imu;
     Orientation angles;
@@ -84,10 +89,12 @@ public class HardwareBotman {
         leftWheel = hwMap.get(DcMotor.class, "left_drive");
         rightWheel = hwMap.get(DcMotor.class, "right_drive");
         extension = hwMap.get(DcMotor.class, "latch");
-        //armExtension=hwMap.get(DcMotor.class,"arm_lift");
-        //Elbow=hwMap.get(DcMotorSimple.class, "arm_twist");
-        collector=hwMap.get(DcMotorSimple.class, "collector");
+        armExtension=hwMap.get(DcMotorSimple.class,"arm_lift");
+        armCollectorRotation=hwMap.get(DcMotorSimple.class, "armCollectorRotation");
+        Elbow=hwMap.get(DcMotor.class, "arm_twist");
 
+        collector=hwMap.get(CRServo.class, "collector");
+        collectingArmExtension=hwMap.get(CRServo.class, "collectingArmExtension");
 
 
         leftWheel.setDirection(DcMotor.Direction.FORWARD);

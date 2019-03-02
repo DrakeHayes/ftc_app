@@ -26,8 +26,8 @@ public class AutoCrater extends OpMode {
     private static final int sampleRate = 4; //How many samples to take, per second.
     private static final int timeDelay = 1000/sampleRate; //Delay between samples in milliseconds
 
-    private final double EXTENSION_TARGET = 10750;
-    private final double LEFT_MINERAL_THETA = 15;
+    private final double EXTENSION_TARGET = 10650;
+    private final double LEFT_MINERAL_THETA = 20;
     private final double RIGHT_MINERAL_THETA = -20;
 
     private boolean modeChange = false;
@@ -47,6 +47,7 @@ public class AutoCrater extends OpMode {
         EVALUATE_MINERALS,  //Stop scanning for the minerals and start
         TURN_TO_MINERAL,    //Turn to the mineral in order to knock it off
         REMOVE_MINERAL,     //Go forward to knock off the mineral
+        CRATER_PARK_IN_CRATER,
 
         CRATER_BACKING_UP,
         CRATER_TURN_TO_WALL,
@@ -65,6 +66,9 @@ public class AutoCrater extends OpMode {
     public void init() {
 
         robot.init(hardwareMap, true);
+        robot.extension.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.rightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     @Override
@@ -142,8 +146,8 @@ public class AutoCrater extends OpMode {
                         state = CurrentState.REMOVE_MINERAL;
                         break;
                     case GOLD_LEFT:
-                        robot.leftWheel.setPower(-0.3);
-                        robot.rightWheel.setPower(0.3);
+                        robot.leftWheel.setPower(-0.1);
+                        robot.rightWheel.setPower(0.1);
                         Log.v(TAG, "Now turning to left mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + LEFT_MINERAL_THETA);
                         if (robot.heading() > LEFT_MINERAL_THETA){
                             robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -151,8 +155,8 @@ public class AutoCrater extends OpMode {
                         }
                         break;
                     case GOLD_RIGHT:
-                        robot.leftWheel.setPower(0.3);
-                        robot.rightWheel.setPower(-0.3);
+                        robot.leftWheel.setPower(0.1);
+                        robot.rightWheel.setPower(-0.1);
                         Log.v(TAG, "Now turning to right mineral, robot heading is: " + robot.heading() + ", Target Heading is: " + RIGHT_MINERAL_THETA);
                         if (robot.heading() < RIGHT_MINERAL_THETA){
                             robot.leftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -171,13 +175,26 @@ public class AutoCrater extends OpMode {
                 if (robot.leftWheel.getCurrentPosition()>1200){
                     robot.rightWheel.setPower(0.0);
                     robot.leftWheel.setPower(0.0);
-                    state = CurrentState.CRATER_BACKING_UP;
+                    elapsedTime.reset();
+                    state = CurrentState.CRATER_PARK_IN_CRATER;
                 }
                 else {
                     robot.rightWheel.setPower(0.4);
                     robot.leftWheel.setPower(0.4);
                 }
                 break;
+
+            case CRATER_PARK_IN_CRATER:
+                if (elapsedTime.seconds()>0.5) {
+                    robot.armCollectorRotation.setPower(0);
+                    state=CurrentState.STOP;
+                }
+                else {
+                    robot.armCollectorRotation.setPower(1);
+                }
+                break;
+
+         /*
             case CRATER_BACKING_UP:
                 if (robot.leftWheel.getCurrentPosition()<=350){
                     robot.rightWheel.setPower(0.0);
@@ -245,7 +262,7 @@ public class AutoCrater extends OpMode {
                     robot.driveByGyro(-0.4,180);
                 }
                 break;
-
+*/
             case STOP:
                 robot.leftWheel.setPower(0.0);
                 robot.rightWheel.setPower(0.0);
